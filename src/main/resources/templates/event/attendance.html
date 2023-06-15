@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="kr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <meta charset="UTF-8">
+  <title>출석체크</title>
+  <style>
+    #calendar {
+      width: 550px;
+      margin: 0;
+      float: left;
+    }
+    .attendance-image {
+      width: 90%;
+      height: 90%;
+      margin-left: 3px;
+    }
+    .check-button {
+      display: inline-block;
+      margin-top: 5px;
+      cursor: pointer;
+      border: none;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src='https://fullcalendar.io/releases/fullcalendar/3.9.0/lib/moment.min.js'></script>
+  <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css' rel='stylesheet'/>
+  <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.print.css' rel='stylesheet' media='print'/>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js'></script>
+  <script>
+$(document).ready(function() {
+  var token = $("meta[name='_csrf']").attr("content");
+  var header = $("meta[name='_csrf_header']").attr("content");
+  var today = moment().format('YYYY-MM-DD');
+
+  $('#calendar').fullCalendar({
+    header: {
+      left: '',
+      center: 'title',
+      right: ''
+    },
+    dayRender: function(date, cell) {
+      var image = $('<img>', {
+        class: 'attendance-image',
+        src: '../image/check_x.png',
+        click: function() {
+          var clickedDate = moment(date).format('YYYY-MM-DD');
+
+          if (clickedDate === 'favicon.ico') {
+            return;
+          }
+
+          if (clickedDate === today) {
+            var $image = $(this);
+
+            $.ajax({
+              type: 'POST',
+              url: 'attendance/save',
+              contentType: 'application/json',
+              data: JSON.stringify({ date: clickedDate }),
+              success: function(response) {
+                $image.attr('src', '../image/check2.png');
+              },
+              beforeSend: function(xhr) {
+                xhr.setRequestHeader(header, token);
+              },
+              error: function(error) {
+                console.log(error);
+              }
+            });
+          } else {
+            console.log("출석체크는 당일만 가능합니다.");
+          }
+        }
+      });
+
+      var clickedDate = moment(date).format('YYYY-MM-DD');
+      $.ajax({
+        type: 'GET',
+        url: 'attendance/checkStatus/' + clickedDate,
+        success: function(response) {
+          if (response) {
+            image.attr('src', '../image/check2.png');
+          }
+        },
+        beforeSend: function(xhr) {
+          xhr.setRequestHeader(header, token);
+        },
+        error: function(error) {
+          console.log(error);
+        }
+      });
+
+      $(cell).append(image);
+    }
+  });
+});
+</script>
+
+</head>
+<body>
+<div id="calendar"></div>
+</body>
+</html>

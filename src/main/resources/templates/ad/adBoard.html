@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="kr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>광고 게시판</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid black;
+        }
+
+        th {
+            background-color: lightgray;
+        }
+    </style>
+</head>
+<body>
+<h1>광고 게시판</h1>
+<a href="/adWrite">글 등록</a><br>
+<table>
+    <tr>
+        <th>번호</th>
+        <th>제목</th>
+        <th>작성자</th>
+        <th>작성 날짜</th>
+        <th>상태</th>
+    </tr>
+    <tr th:each="ad, adIndex : ${ads}">
+        <td th:text="${adIndex.index + 1}"></td>
+        <td th:text="${ad.title}"></td>
+        <td th:text="${ad.advertiserName}"></td>
+        <td th:text="${ad.requestDate}"></td>
+        <td th:text="${ad.status}"></td>
+    </tr>
+</table>
+
+</body>
+</html>

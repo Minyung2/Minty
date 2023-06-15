@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="kr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>관리자 페이지</title>
+    <style>
+        .board-item {
+            display: flex;
+            align-items: center;
+        }
+        .board-item .image-preview {
+            flex-shrink: 0;
+            margin-right: 20px;
+            margin-lift: 20px;
+        }
+        .board-item .content {
+            flex-grow: 1;
+        }
+        .thin-light-hr {
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="ad-board">
+    광고 요청 <hr>
+    <div th:each="ad, status : ${ads}">
+        <a th:href="@{/adAdmin/{id}(id=${ad.id})}" style="text-decoration: none;">
+            <div class="board-item" style="cursor: pointer;">
+                <div class="image-preview">
+                    <img th:src="@{../image/aaa.png}" alt="이미지" width="60" height="60" style="border-radius: 50%;">
+                </div>
+                <div class="content">
+                    <p>
+                <span>
+                    <span th:text="${'[' + ad.status + ']' + ' '}" style="font-weight: bold;"></span>
+                    <span th:text="${ad.title}"></span>
+                </span>
+                    </p>
+                    <p>
+                        <span th:text="${ad.advertiserName}" style="color: #999;"></span>
+                        <span th:text="${ad.startDate + ' - ' + ad.endDate}" style="color: #999;"></span>
+                    </p>
+                </div>
+            </div>
+        </a>
+        <hr class="thin-light-hr" th:unless="${status.isLast()}">
+    </div>
+</div>
+</body>
+</html>

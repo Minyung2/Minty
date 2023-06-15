@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="kr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+
+<div layout:fragment="content" style="display: flex; justify-content: center; item-align: start; ">
+
+    <style>
+     :root {
+      scroll-behavior: auto;
+    }
+    .slide-container {
+      width: 480vw;
+      transition: all 1s;
+      height: 30vw;
+    }
+    .slide-box {
+      width: 80vw;
+      float: left;
+    }
+    .slide-box img {
+      width: 80%;
+      margin-left:25%;
+    }
+
+  </style>
+
+    <div style="overflow: hidden">
+        <div class="slide-container">
+            <div class="slide-box">
+                <img src="/image/mainPage/main1.jpg" />
+            </div>
+
+            <div class="slide-box">
+                <img src="/image/mainPage/main2.jpg" />
+            </div>
+
+            <div class="slide-box">
+                <img src="/image/mainPage/main3.jpg" />
+            </div>
+
+            <div class="slide-box">
+                <img src="/image/mainPage/main4.jpg" />
+            </div>
+
+            <div class="slide-box">
+                <img src="/image/mainPage/main5.jpg" />
+            </div>
+
+            <div class="slide-box">
+                <img src="/image/mainPage/main6.jpg" />
+            </div>
+        </div>
+        <div style="margin-top:6%; width:100vw; text-align:center;">
+            <img src="/image/mainPage/main-1.png" />
+        </div>
+        <div style="margin-top:2%; width:100vw; text-align:center;">
+            <img src="/image/mainPage/main-3.png" />
+        </div>
+        <div style="margin-top:2%; width:100vw; text-align:center;">
+            <img src="/image/mainPage/main-2.png" />
+        </div>
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+  var 지금사진 = 8;
+  var timer;
+
+  function slideTransition() {
+    $('.slide-container').css('transform', 'translateX(-' + 지금사진 + '0vw)');
+    지금사진 += 8;
+    if (지금사진 === 56) {
+      $('.slide-container').css('transform', 'translateX(-0vw)');
+      지금사진 = 8;
+    }
+  }
+
+  function resetTimer() {
+    clearTimeout(timer);
+    timer = setTimeout(function() {
+      slideTransition();
+      resetTimer();
+    }, 3000);
+  }
+
+  $('.slide-box').on('click', function() {
+    slideTransition();
+    resetTimer();
+  });
+
+  resetTimer();
+  getUserIdFromServer();
+
+  // userId 가져오기\
+function getUserIdFromServer() {
+    $.ajax({
+        url: "/getchatting/getUserId",
+        type: "GET",
+        success: function(response) {
+            var userId = response; // 서버로부터 받은 userId 값
+            // 여기서 userId 값을 원하는 곳에서 사용할 수 있습니다.
+            // 예: localStorage에 저장
+            localStorage.setItem("userId", userId);
+        },
+        error: function(error) {
+            console.log("Error:", error);
+        }
+    });
+}
+</script>
+
+</div>
+</html>
