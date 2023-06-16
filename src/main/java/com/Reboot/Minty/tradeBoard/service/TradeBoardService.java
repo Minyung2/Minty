@@ -133,65 +133,82 @@ public class TradeBoardService {
         UserLocation userLocation = userLocationRepository.findByUserId(userId);
 
         TradeBoard tradeBoard = tradeBoardRepository.findById(boardId).orElseThrow(EntityNotFoundException::new);
+        List<TradeBoardImg> imgList = tradeBoardImgRepository.findByTradeBoardId(boardId);
         if (user != tradeBoard.getUser()) {
             new IllegalStateException("수정할 수 있는 권한이 없습니다");
         }
-        MultipartFile firstFile = mf.get(0);
-        String filename = firstFile.getOriginalFilename();
-        String filenameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
-        if(!filenameWithoutExtension.equals(tradeBoard.getThumbnail())){
-            // 새 파일이면
+        if(!mf.isEmpty()) {
+            MultipartFile firstFile = mf.get(0);
+            String filename = firstFile.getOriginalFilename();
+            String filenameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
+            if (!filenameWithoutExtension.equals(tradeBoard.getThumbnail())) {
+                // 새 파일이면
+                try {
+                    //기존 파일 삭제하고 저장
+                    deleteFile(bucketName, tradeBoard.getThumbnail());
+                    MultipartFile resizedFirstFile = resizeImage(firstFile, 360, 360);
+                    BlobInfo blobInfo = storage.create(
+                            BlobInfo.newBuilder(bucketName, uuid)
+                                    .setContentType("image/jpg")
+                                    .build(),
+                            resizedFirstFile.getInputStream()
+                    );
+                    tradeBoardRepository.save(tradeBoard);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            tradeBoardDto.updateEntity(tradeBoard);
+            tradeBoard.setThumbnail(uuid);
+            tradeBoard.setUser(user);
+            tradeBoard.setUserLocation(userLocation);
+            tradeBoardRepository.save(tradeBoard);
+
+            // 이미지 리스트 기존 파일 삭제, DB 삭제
+
+            for(TradeBoardImg tradeBoardImg : imgList){
+                // Check if the image is in the list of URLs sent by the client
+                if (!imageUrls.contains(tradeBoardImg.getImgUrl())) {
+                    // If not, delete it
+                    tradeBoardImgRepository.delete(tradeBoardImg);
+                    deleteFile(bucketName,tradeBoardImg.getImgUrl());
+                }
+            }
             try {
-                //기존 파일 삭제하고 저장
-                deleteFile(bucketName,tradeBoard.getThumbnail());
-                MultipartFile resizedFirstFile = resizeImage(firstFile, 360, 360);
-                BlobInfo blobInfo = storage.create(
-                        BlobInfo.newBuilder(bucketName, uuid)
-                                .setContentType("image/jpg")
-                                .build(),
-                        resizedFirstFile.getInputStream()
-                );
-                tradeBoardRepository.save(tradeBoard);
+                for (int i = 0; i < mf.size(); i++) {
+                    uuid = UUID.randomUUID().toString();
+                    MultipartFile files = mf.get(i);
+                    String fileName = uuid;
+                    MultipartFile resizedFile = resizeImage(files, 800, 600);
+                    BlobInfo blobInfo = storage.create(
+                            BlobInfo.newBuilder(bucketName, uuid)
+                                    .setContentType("image/jpg")
+                                    .build(),
+                            resizedFile.getInputStream()
+                    );
+                    TradeBoardImg tradeBoardImg = new TradeBoardImg();
+                    tradeBoardImg.setTradeBoard(tradeBoard);
+                    tradeBoardImg.setImgUrl(fileName);
+                    tradeBoardImgRepository.save(tradeBoardImg);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        tradeBoardDto.updateEntity(tradeBoard);
-        tradeBoard.setThumbnail(uuid);
-        tradeBoard.setUser(user);
-        tradeBoard.setUserLocation(userLocation);
-        tradeBoardRepository.save(tradeBoard);
 
-        // 이미지 리스트 기존 파일 삭제, DB 삭제
-        List<TradeBoardImg> imgList = tradeBoardImgRepository.findByTradeBoardId(boardId);
-        for(TradeBoardImg tradeBoardImg : imgList){
-            // Check if the image is in the list of URLs sent by the client
-            if (!imageUrls.contains(tradeBoardImg.getImgUrl())) {
-                // If not, delete it
-                tradeBoardImgRepository.delete(tradeBoardImg);
-                deleteFile(bucketName,tradeBoardImg.getImgUrl());
-            }
-        }
-        try {
-            for (int i = 0; i < mf.size(); i++) {
-                uuid = UUID.randomUUID().toString();
-                MultipartFile files = mf.get(i);
-                String fileName = uuid;
-                MultipartFile resizedFile = resizeImage(files, 800, 600);
-                BlobInfo blobInfo = storage.create(
-                        BlobInfo.newBuilder(bucketName, uuid)
-                                .setContentType("image/jpg")
-                                .build(),
-                        resizedFile.getInputStream()
-                );
-                TradeBoardImg tradeBoardImg = new TradeBoardImg();
-                tradeBoardImg.setTradeBoard(tradeBoard);
-                tradeBoardImg.setImgUrl(fileName);
-                tradeBoardImgRepository.save(tradeBoardImg);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // updateWithoutMultiFile
+//        else{
+//            for (int i = 0; i < imageUrls.size(); i++) {
+//                String imageUrl = imageUrls.get(i);
+//                int existingIndex = imgList.indexOf(imageUrl);
+//                if (existingIndex != -1 && existingIndex != i) {
+//                    // Image URL exists in the database, but the order has changed
+//                    TradeBoardImg tradeBoardImg = tradeBoardImgRepository.findByImageUrlAndTradeBoardId(imageUrl, boardId);
+//                    tradeBoardImg.setOrderIndex(i); // Update the new order index
+//                    tradeBoardImgRepository.save(tradeBoardImg);
+//                }
+//            }
+//        }
 
     }
 

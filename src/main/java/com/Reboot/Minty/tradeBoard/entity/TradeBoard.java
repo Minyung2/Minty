@@ -20,6 +20,7 @@ import java.sql.Timestamp;
 @Setter
 @DynamicInsert
 public class TradeBoard {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

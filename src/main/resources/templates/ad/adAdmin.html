@@ -61,7 +61,7 @@
 
         .image-preview img {
             max-width: 100%;
-            margin-top: 10px;
+            object-fit : contain;
         }
         .button-container form {
             display: inline;
@@ -99,10 +99,10 @@
       </div>
       </div>
       <br><br>
-    </div>
     <div class="image-preview">
-      <img th:if="${ad.image}" th:src="@{'/adimage/' + ${ad.image}}" alt="Ad Image" />
+      <img class="image-preview img" th:src="@{|/adimage/${ad.image}|}" alt="Ad Image" />
     </div>
+  </div>
   </div>
 </div>
 <div class="close">

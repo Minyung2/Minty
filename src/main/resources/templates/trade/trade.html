@@ -248,6 +248,14 @@
             </form>
         </div>
 
+        <div class="form-row button-row" th:if="${trade.status == '대화요청' || trade.status == '거래시작' || trade.status == '거래중' || trade.status == '거래완료' || trade.status == '거래취소'}">
+            <form th:action="@{'/updateStatus'}" method="post">
+                <input type="hidden" name="tradeId" th:value="${trade.id}" />
+                <input type="hidden" name="statusIndex" value="1" />
+                <button type="submit">거래시작(임시)</button>
+            </form>
+        </div>
+
 
     </div>
 

@@ -45,7 +45,7 @@ public class TradeBoardController {
     public TradeBoardController(CategoryService categoryService, TradeBoardService tradeBoardService, TradeBoardRepository tradeBoardRepository) {
         this.categoryService = categoryService;
         this.tradeBoardService = tradeBoardService;
-        this.tradeBoardRepository= tradeBoardRepository;
+        this.tradeBoardRepository = tradeBoardRepository;
     }
 
 
@@ -84,14 +84,15 @@ public class TradeBoardController {
 
         return response;
     }
+
     @GetMapping("/boardDetail/{boardId}")
-    public String tradeBoardDetail(){
+    public String tradeBoardDetail() {
         return "../static/index";
     }
 
     @GetMapping("/api/boardDetail/{boardId}")
     @ResponseBody
-    public Map<String, Object> getDetail(@PathVariable("boardId") Long boardId, HttpServletRequest request){
+    public Map<String, Object> getDetail(@PathVariable("boardId") Long boardId, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         TradeBoard tradeBoard = tradeBoardService.findById(boardId);
         List<TradeBoardImg> imageList = tradeBoardService.getImgList(boardId);
@@ -101,7 +102,7 @@ public class TradeBoardController {
         response.put("isAuthor", isAuthor);
         response.put("tradeBoard", tradeBoard);
         response.put("nickName", nickName);
-        response.put("imageList",imageList);
+        response.put("imageList", imageList);
         return response;
     }
 
@@ -154,7 +155,8 @@ public class TradeBoardController {
         }
         if (isEmpty) {
             errors.put("fileUpload", "이미지 파일은 필수입니다.");
-        }if (!errors.isEmpty()) {
+        }
+        if (!errors.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
         } else {
             Long boardId;
@@ -167,14 +169,16 @@ public class TradeBoardController {
             return ResponseEntity.ok(boardId);
         }
     }
+
     @PostMapping("/tradeUpdate/{boardId}")
     @ResponseBody
-    public ResponseEntity<?> tradeUpdate(@PathVariable("boardId") Long boardId ,
+    public ResponseEntity<?> tradeUpdate(@PathVariable("boardId") Long boardId,
                                          @Valid TradeBoardDto tradeBoardDto, BindingResult bindingResult,
-                                         @RequestPart("fileUpload") List<MultipartFile> mf,
+                                         @RequestPart(value="fileUpload", required = false) List<MultipartFile> mf,
                                          @RequestParam("imageUrls") String imageUrlsJson,
                                          HttpSession session) throws JsonProcessingException {
-        List<String> imageUrls = new ObjectMapper().readValue(imageUrlsJson, new TypeReference<>() {});
+        List<String> imageUrls = new ObjectMapper().readValue(imageUrlsJson, new TypeReference<>() {
+        });
         Map<String, String> errors = new HashMap<>();
         if (bindingResult.hasErrors()) {
             errors = bindingResult.getFieldErrors().stream()
@@ -184,18 +188,19 @@ public class TradeBoardController {
             errors.put("subCategory", "서브 카테고리를 선택해주세요.");
         }
         List<String> filenames = new ArrayList<>();
-        boolean images = true;
-        if (mf.size() > 0) {
+        boolean isImages = true;
+        if(mf!=null) {
             for (MultipartFile file : mf) {
-                if (file.getContentType().startsWith("image")) {
-                    images = false;
+                if (!file.getContentType().startsWith("image")) {
+                    isImages = false;
                     break;
                 }
             }
         }
-        if (!images) {
-            errors.put("fileUpload", "이미지 파일은 필수입니다.");
-        }if (!errors.isEmpty()) {
+        if (!isImages) {
+            errors.put("fileUpload", "이미지 파일만 첨부 가능합니다.");
+        }
+        if (!errors.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
         } else {
             try {
