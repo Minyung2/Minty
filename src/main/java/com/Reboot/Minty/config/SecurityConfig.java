@@ -1,6 +1,5 @@
 package com.Reboot.Minty.config;
 
-import com.Reboot.Minty.member.constant.Role;
 import com.Reboot.Minty.member.dto.JoinDto;
 import com.Reboot.Minty.member.service.CustomOAuth2UserService;
 import com.Reboot.Minty.member.service.UserService;
@@ -16,6 +15,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -43,7 +43,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http.authorizeRequests()
-                .requestMatchers("/css/**", "/js/**", "/image/**","/fragments/**","/layout/**").permitAll()
+                .requestMatchers("/adimage/**","/css/**", "/js/**", "/image/**","/fragments/**","/layout/**").permitAll()
                 .requestMatchers("/login/**", "/join/**", "/map/**","/","/sms/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
@@ -94,7 +94,7 @@ public class SecurityConfig {
         return (request, response, authentication) -> {
             OAuth2AuthenticationToken token = (OAuth2AuthenticationToken) authentication;
             boolean hasRegisterUserAuthority = token.getAuthorities().stream()
-                    .anyMatch(auth -> Role.REGISTER_USER.name().equals(auth.getAuthority()));
+                    .anyMatch(auth -> "REGISTER_USER".equals(auth.getAuthority()));
             OAuth2User oAuth2User = token.getPrincipal();
             Map<String, Object> kakao_account = (Map<String, Object>) oAuth2User.getAttribute("kakao_account");
             Map<String, Object> naver_account = (Map<String, Object>) oAuth2User.getAttribute("response");
@@ -122,6 +122,7 @@ public class SecurityConfig {
                     joinDto.setGender(gender);
                     session.setAttribute("joinDto", joinDto);
                 }
+
                 response.sendRedirect("/join");
             }  else {
                 HttpSession session = request.getSession();

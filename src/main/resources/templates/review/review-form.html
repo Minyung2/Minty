@@ -225,57 +225,59 @@
 </div>
 <div class="form-container">
     <div class="product-info-container">
-        <form action="/product" method="post" enctype="multipart/form-data">
-            <input type="hidden" id="userId" name="userId" th:value="${userId}" readonly>
-            <label for="productImage">구매 상품 이미지</label>
-            <!--    <input type="file" id="productImage" name="productImage" accept="image/*" onchange="showProductImage(event)"><br>-->
-            <!--    <img id="previewProductImage" style="max-width: 200px; max-height: 200px; margin-top: 10px;"><br><br>-->
+        <form action="/" method="post" enctype="multipart/form-data">
+            <div class="info">
+                <div class="product-image">
+                    <img th:src="@{'https://storage.cloud.google.com/reboot-minty-storage/' + ${trade.boardId.thumbnail}}" alt="Board Image" className="board-img" th:trade_id="${trade.boardId.id}" />
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name" th:text="${trade.boardId.title}"></h3>
+                    <p class="product-price" th:text="'￦' + ${trade.boardId.price}"></p>
+                </div>
+            </div>
 
-            <!--    &lt;!&ndash; 상품 정보 &ndash;&gt;-->
-            <label for="productInfo">상품 정보</label>
-            <!--    <textarea id="productInfo" name="productInfo" rows="4" cols="50"></textarea><br><br>-->
         </form>
     </div>
 </div>
-    <br><br><br>
+<br><br><br>
 
 
 
-    <div class="divider"></div>
-    <div class="form-container">
-        <form id="reviewForm" action="/" method="post" enctype="multipart/form-data" onsubmit="event.preventDefault(); showConfirmationPopup();" >
+<div class="divider"></div>
+<div class="form-container">
+    <form id="reviewForm" action="/" method="post" enctype="multipart/form-data" onsubmit="event.preventDefault(); showConfirmationPopup();" >
 
-            <label for="imageFile">이미지 첨부</label>
-            <input type="file" id="imageFile" name="imageFile" accept="image/*" onchange="showImage(event)" ><br>
-            <img id="previewImage" style="max-width: 200px; max-height: 200px; margin-top: 10px;">
+        <label for="imageFile">이미지 첨부</label>
+        <input type="file" id="imageFile" name="imageFile" accept="image/*" onchange="showImage(event)" ><br>
+        <img id="previewImage" style="max-width: 200px; max-height: 200px; margin-top: 10px;">
 
-            <label>평점</label>
-            <div class="rating">
-                <input type="radio" id="star5" name="rating" value="5" required onclick="changeRatingImage('star5')" />
-                <label for="star5"><img src="/image/review/reviewPage/star5.png"></label>
-                <input type="radio" id="star4" name="rating" value="4" onclick="changeRatingImage('star4')" />
-                <label for="star4"><img src="/image/review/reviewPage/star4.png"></label>
-                <input type="radio" id="star3" name="rating" value="3" onclick="changeRatingImage('star3')" />
-                <label for="star3"><img src="/image/review/reviewPage/star3.png"></label>
-                <input type="radio" id="star2" name="rating" value="2" onclick="changeRatingImage('star2')" />
-                <label for="star2"><img src="/image/review/reviewPage/star2.png"></label>
-                <input type="radio" id="star1" name="rating" value="1" onclick="changeRatingImage('star1')" />
-                <label for="star1"><img src="/image/review/reviewPage/star1.png"></label>
-            </div>
-            <div>
-<!--                <label for="title">제목</label>-->
-<!--                <input type="text" id="title" name="title" required>-->
-                <label for="contents">내용</label>
-                <textarea id="contents" name="contents" rows="10" cols="50" maxlength="100" required></textarea>
-            </div>
-            <!--    <label for="sellBoardId">게시글 ID:</label><br>-->
-            <!--    <input type="number" id="sellBoardId" name="sellBoardId" required><br><br>-->
+        <label>평점</label>
+        <div class="rating">
+            <input type="radio" id="star5" name="rating" value="5" required onclick="changeRatingImage('star5')" />
+            <label for="star5"><img src="/image/review/reviewPage/star5.png"></label>
+            <input type="radio" id="star4" name="rating" value="4" onclick="changeRatingImage('star4')" />
+            <label for="star4"><img src="/image/review/reviewPage/star4.png"></label>
+            <input type="radio" id="star3" name="rating" value="3" onclick="changeRatingImage('star3')" />
+            <label for="star3"><img src="/image/review/reviewPage/star3.png"></label>
+            <input type="radio" id="star2" name="rating" value="2" onclick="changeRatingImage('star2')" />
+            <label for="star2"><img src="/image/review/reviewPage/star2.png"></label>
+            <input type="radio" id="star1" name="rating" value="1" onclick="changeRatingImage('star1')" />
+            <label for="star1"><img src="/image/review/reviewPage/star1.png"></label>
+        </div>
+        <div>
+            <!--                <label for="title">제목</label>-->
+            <!--                <input type="text" id="title" name="title" required>-->
+            <label for="contents">내용</label>
+            <textarea id="contents" name="contents" rows="10" cols="50" maxlength="100" required></textarea>
+        </div>
+        <!--    <label for="sellBoardId">게시글 ID:</label><br>-->
+        <!--    <input type="number" id="sellBoardId" name="sellBoardId" required><br><br>-->
 
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-            <input type="submit" value="작성완료" />
-            <button type="button" onclick="goBack()">취소</button>
-        </form>
-
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="submit" value="작성완료" />
+        <button type="button" onclick="goBack()">취소</button>
+    </form>
+</div>
 </body>
 
 </html>

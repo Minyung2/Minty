@@ -1,5 +1,8 @@
 package com.Reboot.Minty.review.dto;
 
+import com.Reboot.Minty.member.entity.User;
+import com.Reboot.Minty.trade.entity.Trade;
+import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,28 +19,20 @@ public class ReviewDto {
     private String imageUrl; // 이미지 파일 URL 추가
     private String contents;
     private int rating;
-    private Long sellBoardId;
+    private TradeBoard tradeBoard;
     private MultipartFile imageFile;
-    private MultipartFile productImage;
-    private String productInfo;
     private String nickname;
-    private Long buyerId;
+    private User buyerId;
+    private User writerId;
+    private User sellerId;
     private String createdAt;
+    private Trade trade;
 
+    public TradeBoard getTradeBoard() {
+        if (tradeBoard == null) {
+            return null; // 또는 다른 값 또는 처리 로직을 작성하세요.
+        }
+        return tradeBoard;
+    }
 
-//    public ReviewDto(Long id, String writer, String imageUrl, String contents, int rating, Long sellBoardId,
-//                     MultipartFile imageFile, MultipartFile productImage, String productInfo, String nickname,
-//                     String createdAt) {
-//        this.id = id;
-//        this.writer = writer;
-//        this.imageUrl = imageUrl;
-//        this.contents = contents;
-//        this.rating = rating;
-//        this.sellBoardId = sellBoardId;
-//        this.imageFile = imageFile;
-//        this.productImage = productImage;
-//        this.productInfo = productInfo;
-//        this.nickname = nickname;
-//        this.createdAt = createdAt;
-//    }
 }

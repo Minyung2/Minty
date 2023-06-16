@@ -2,7 +2,6 @@
 <html lang="kr" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>광고 관리자 상세보기</title>
   <style>
         body {
             font-family: Arial, sans-serif;
@@ -67,6 +66,15 @@
         .button-container form {
             display: inline;
         }
+        .close {
+          text-align: center;
+          position: fixed;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+
+
     </style>
 </head>
 <body>
@@ -75,27 +83,71 @@
     <div class="ad-content">
       <h2>Title: <span th:text="${ad.title}"></span></h2>
       <p><strong>Advertiser Name:</strong> <span th:text="${ad.advertiserName}"></span></p>
-      <p><strong>Title:</strong> <span th:text="${ad.title}"></span></p>
       <p><strong>Content:</strong> <span th:text="${ad.content}"></span></p>
       <p><strong>Status:</strong> <span th:text="${ad.status}"></span></p>
       <p><strong>Start Date:</strong> <span th:text="${ad.startDate}"></span></p>
       <p><strong>End Date:</strong> <span th:text="${ad.endDate}"></span></p>
       <p><strong>Amount:</strong> <span th:text="${ad.amount}"></span></p><br><br>
       <div class="button-container">
-        <form method="post" th:action="@{/admin/ads/{id}/approve(id=${ad.id})}">
-          <input type="submit" value="승인"/>
+        <form id="approveForm" method="post" th:action="@{/admin/ads/{id}/approve(id=${ad.id})}">
+          <input type="submit" value="승인" onclick="submitFormAndClosePopup(event, 'approveForm')"/>
         </form>
-        <form method="post" th:action="@{/admin/ads/{id}/reject(id=${ad.id})}">
-          <input type="submit" value="거부"/>
+
+        <form id="rejectForm" method="post" th:action="@{/admin/ads/{id}/reject(id=${ad.id})}">
+          <input type="submit" value="거부" onclick="submitFormAndClosePopup(event, 'rejectForm')"/>
         </form>
+      </div>
       </div>
       <br><br>
     </div>
     <div class="image-preview">
-      <p><strong>Image:</strong></p>
       <img th:if="${ad.image}" th:src="@{'/adimage/' + ${ad.image}}" alt="Ad Image" />
     </div>
   </div>
 </div>
+<div class="close">
+  <button id="closeButton">닫기</button>
+</div>
+<script>
+  var closeButton = document.getElementById('closeButton');
+
+  function refreshDashboard() {
+    if (window.opener) {
+      window.opener.location.reload(); // 부모 창을 새로 고칩니다.
+    }
+  }
+
+  function submitFormAndClosePopup(event, formId) {
+    event.preventDefault(); // 기본 제출 동작을 막습니다.
+
+    var form = document.getElementById(formId);
+    var formData = new FormData(form);
+
+    // AJAX 요청
+    var xhr = new XMLHttpRequest();
+    xhr.open(form.method, form.action, true);
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        if (formId == 'approveForm') {
+          alert("광고 승인 처리 되었습니다.");
+        } else {
+          alert("광고 거절 처리 되었습니다.");
+        }
+        refreshDashboard(); // 대시보드를 새로고침합니다.
+        window.close(); // 팝업 창을 닫습니다.
+      } else {
+        console.error('폼 제출 중 오류가 발생했습니다.');
+      }
+    };
+    xhr.onerror = function() {
+      console.error('폼 제출 중 네트워크 오류가 발생했습니다.');
+    };
+    xhr.send(formData);
+  }
+
+  closeButton.addEventListener('click', function() {
+    window.close();
+  });
+</script>
 </body>
 </html>

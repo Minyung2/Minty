@@ -1,6 +1,7 @@
 package com.Reboot.Minty.support.dto;
 
-import java.math.BigDecimal;
+import com.Reboot.Minty.support.entity.Ad;
+
 import java.time.LocalDate;
 
 public class AdDto {

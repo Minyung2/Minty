@@ -109,33 +109,38 @@
   </style>
   </head>
   <!--광고배너-->
-  <div class="ad">
-    <img id="adImage" src="/image/imsy_ad.jpg" alt="임시광고" style="height: 71vh;"/></a>
+
+  <div class="ad" th:if="${advertise != null}">
+    <span class="close-btn" onclick="closeAd()">×</span>
+    <img th:src="@{|/adimage/${advertise.image}|}" alt="Ad Image">
   </div>
+
 
   <!--리모컨(위아래 가기 글쓰기 등등)-->
-  <div class="remote">
-    <div>
-      <a class="button" th:href="@{support/supportBoard}">고객센터</a>
-      <a class="updown up"><img src="/image/up.png" alt="맨위로" /></a>
-    </div>
-    <div>
-      <a class="button" th:href="@{writeForm}">글쓰기</a>
-      <a class="updown down"><img src="/image/down.png" alt="맨아래로" /></a>
-    </div>
-    <div>
-      <a class="button"th:href="@{trade}">거래테스트</a>
-    </div>
-    <div>
-      <a class="button"th:href="@{review}">리뷰작성</a>
-    </div>
-    <div>
-      <a class="button"th:href="@{reviews}">리뷰조회</a>
-    </div>
-  </div>
+  <th:block th:if="${advertise != null || advertise == null}">
 
+    <div class="remote">
+      <div>
+        <a class="button" th:href="@{support/supportBoard}">고객센터</a>
+        <a class="updown up"><img src="/image/up.png" alt="맨위로" /></a>
+      </div>
+      <div>
+        <a class="button" th:href="@{writeForm}">글쓰기</a>
+        <a class="updown down"><img src="/image/down.png" alt="맨아래로" /></a>
+      </div>
+      <div>
+        <a class="button"th:href="@{tradeList}">거래목록</a>
+      </div>
+      <div>
+        <a class="button"th:href="@{review}">리뷰작성</a>
+      </div>
+      <div>
+        <a class="button"th:href="@{reviews}">리뷰조회</a>
+      </div>
+    </div>
+  </th:block>
 
-  <footer class="footer">
+  <footer class="footer" th:fragment="footer" th:if="${advertise != null || advertise == null}">
     Team Reboot <br />
     주소 서울시 금천구 가산디지털2로 101 (가산동) 한라원앤원타워 B동 3층 (KOSMO)
     <br />
@@ -147,15 +152,19 @@
         <br>
         고객센터
       </a>
-      <a href="#">
+      <a href="/adWrite">
         <img src="/image/ad.PNG" alt="로고 이미지" width="30px" height="30px" />
         <br>
         광고문의
+
       </a>
+
+
     </div>
     <div class="footer-info">
       <p>© 2023 Your Company. All rights reserved.</p>
     </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
   $(document).ready(function() {
@@ -195,6 +204,14 @@
     window.addEventListener("beforeunload", function() {
         changeAdImage();
     });
+
+    function closeAd() {
+      var adBanner = document.getElementsByClassName('ad')[0];
+      if (adBanner) {
+        adBanner.style.display = 'none';
+      }
+    }
+
 
 </script>
   </footer>

@@ -65,5 +65,11 @@ public class ManagerStatisticsService {
         return convertToDto(managerStatistics);
     }
 
+    public ManagerStatistics getStatisticsByVisitDate(LocalDate date) {
+        return managerStatisticsRepository.findByVisitDate(date);
+    }
 
+    public void saveStatistics(ManagerStatistics statistics) {
+        managerStatisticsRepository.save(statistics);
+    }
 }

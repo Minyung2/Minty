@@ -16,7 +16,7 @@ function BoardDetail({ csrfToken }) {
   const [showModal, setShowModal] = useState(false); // Modal 표시 여부 상태
   const { id } = useParams();
 
-   const navigate = useNavigate();
+const navigate = useNavigate();
 
    const handleEditClick = () => {
      navigate(`/writeForm/${id}`, { state: { tradeBoard, imageList } });
@@ -56,27 +56,27 @@ function BoardDetail({ csrfToken }) {
   };
 
   const purchasingReq = () => {
-    axios
-      .post('/api/purchasingReq', tradeBoard, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-        },
-      })
-      .then((response) => {
-        window.location.href = response.data;
-      })
-      .catch((error) => {
-           if (error.response && error.response.status === 400) {
-                    alert("이미 존재하는 구매 요청입니다.");
-                    window.location.href = error.response.data;
-           } else {
-             // Other errors - Show generic error message in alert
-             console.log(error);
-             alert('An error occurred.');
-           }
-         });
-  };
+      axios
+        .post('/api/purchasingReq', tradeBoard, {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken,
+          },
+        })
+        .then((response) => {
+          window.location.href = response.data;
+        })
+        .catch((error) => {
+             if (error.response && error.response.status === 400) {
+                      alert("이미 존재하는 구매 요청입니다.");
+                      window.location.href = error.response.data;
+             } else {
+               // Other errors - Show generic error message in alert
+               console.log(error);
+               alert('An error occurred.');
+             }
+           });
+    };
 
   return (
     <Container>
@@ -128,7 +128,7 @@ function BoardDetail({ csrfToken }) {
       </Row>
       <br/><br/>
       <Row>
-        <Col md={8}></Col>
+        <Col md={12}></Col>
        <Col md={3}>
        <div>
        {isAuthor && <Button variant="primary" onClick={handleEditClick} style={{gap:3}}>수정</Button>}

@@ -1,8 +1,12 @@
 package com.Reboot.Minty.review.entity;
 
+import com.Reboot.Minty.member.entity.User;
+import com.Reboot.Minty.trade.entity.Trade;
 import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "review")
@@ -15,6 +19,10 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "writer_id")
+    private User writerId;
+
     @Column(name = "contents", nullable = false)
     private String contents;
 
@@ -24,20 +32,28 @@ public class Review {
     @Column(name = "image_url") // 이미지 파일 URL 저장하는 필드 추가
     private String imageUrl;
 
+    @ManyToOne
+    @JoinColumn(name = "buyer_id")
+    private User buyerId;
 
-    @Column(name = "buyerId")
-    private Long buyerId;
+    @ManyToOne
+    @JoinColumn(name = "seller_id")
+    private User sellerId;
 
     @Column(name = "nickname")
     private String nickname;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "trade_id")
+    private Trade trade;
 
     @ManyToOne
     @JoinColumn(name = "tradeBoard_id", referencedColumnName = "id")
     private TradeBoard tradeBoard;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    private String createdAt;
     public Review() {
-        // 기본 생성자 추가
     }
 }

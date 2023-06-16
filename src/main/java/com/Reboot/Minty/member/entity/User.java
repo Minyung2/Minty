@@ -45,8 +45,6 @@ public class User {
     @Column(nullable = false, name = "gender")
     private String gender;
 
-
-
     // 레벨, 경험치, 잔액 추가
     @Column(nullable = false, name = "level")
     private int level;
@@ -56,9 +54,6 @@ public class User {
     private int balance;
     @Column(nullable = false, name = "point", columnDefinition = "INT DEFAULT 0")
     private int point;
-
-
-
 
     public User(String name, String email, String ageRange, String mobile, String gender) {
         this.name = name;

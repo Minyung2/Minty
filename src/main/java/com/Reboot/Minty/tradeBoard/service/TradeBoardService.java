@@ -103,24 +103,24 @@ public class TradeBoardService {
         }
 
         try {
-                for (int i = 0; i < mf.size(); i++) {
-                    uuid = UUID.randomUUID().toString();
-                    MultipartFile files = mf.get(i);
-                    String fileName = uuid;
-                    MultipartFile resizedFile = resizeImage(files, 1024, 768);
-                    BlobInfo blobInfo = storage.create(
-                            BlobInfo.newBuilder(bucketName, uuid)
-                                    .setContentType("image/jpg")
-                                    .build(),
-                            resizedFile.getInputStream()
-                    );
-                    TradeBoardImg tradeBoardImg = new TradeBoardImg();
-                    tradeBoardImg.setTradeBoard(savedTradeBoard);
-                    tradeBoardImg.setImgUrl(fileName);
-                    tradeBoardImgRepository.save(tradeBoardImg);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+            for (int i = 0; i < mf.size(); i++) {
+                uuid = UUID.randomUUID().toString();
+                MultipartFile files = mf.get(i);
+                String fileName = uuid;
+                MultipartFile resizedFile = resizeImage(files, 800, 600);
+                BlobInfo blobInfo = storage.create(
+                        BlobInfo.newBuilder(bucketName, uuid)
+                                .setContentType("image/jpg")
+                                .build(),
+                        resizedFile.getInputStream()
+                );
+                TradeBoardImg tradeBoardImg = new TradeBoardImg();
+                tradeBoardImg.setTradeBoard(savedTradeBoard);
+                tradeBoardImg.setImgUrl(fileName);
+                tradeBoardImgRepository.save(tradeBoardImg);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return targetBoardId;
     }
@@ -177,7 +177,7 @@ public class TradeBoardService {
                 uuid = UUID.randomUUID().toString();
                 MultipartFile files = mf.get(i);
                 String fileName = uuid;
-                MultipartFile resizedFile = resizeImage(files, 1024, 768);
+                MultipartFile resizedFile = resizeImage(files, 800, 600);
                 BlobInfo blobInfo = storage.create(
                         BlobInfo.newBuilder(bucketName, uuid)
                                 .setContentType("image/jpg")

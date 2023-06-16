@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -80,5 +81,49 @@ public class TradeService {
         }
 
         return role;
+    }
+
+    public List<Trade> getTradeList(Long userId) {
+        return tradeRepository.getTradeList(userId);
+    }
+
+    public List<User> getTradeUsers(List<Trade> trades, Long userId) {
+        List<User> users = new ArrayList<>();
+        for (Trade trade : trades) {
+            User user = trade.getBuyerId().getId().equals(userId) ? trade.getSellerId() : trade.getBuyerId();
+            users.add(user);
+        }
+        return users;
+    }
+    public Trade getTradeById(Long tradeId) {
+        return tradeRepository.findById(tradeId).orElse(null);
+    }
+
+    public void updateStatus(Long tradeId, int statusIndex) {
+        String[] statuses = {"대화요청", "거래시작", "거래중", "거래완료", "거래취소"};
+
+        if (statusIndex >= 0 && statusIndex < statuses.length) {
+            String newStatus = statuses[statusIndex];
+
+            tradeRepository.updateStatusById(tradeId, newStatus);
+
+            System.out.println("Trade " + tradeId + "의 상태가 " + newStatus + "로 변경되었습니다.");
+        } else {
+            System.out.println("Invalid status index.");
+        }
+    }
+
+    public void updateMode(Long tradeId, int modeIndex) {
+        String[] modes = {"직거래", "안전거래"};
+
+        if (modeIndex >= 0 && modeIndex < modes.length) {
+            String newMode = modes[modeIndex];
+
+            tradeRepository.updateModeById(tradeId, newMode);
+
+            System.out.println("Trade " + tradeId + "의 모드가 " + newMode + "로 변경되었습니다.");
+        } else {
+            System.out.println("Invalid status index.");
+        }
     }
 }

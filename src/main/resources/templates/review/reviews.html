@@ -146,8 +146,7 @@
                 <span class="review_content" th:text="${review.contents}" th:classappend="${review.imageUrl} ? '' : 'expand-width'"></span>
                 <button class="more-button">더 보기</button>
             </div>
-            <span class="review_createdAt"
-                  th:text="${review.createdAt != null ? T(com.Reboot.Minty.review.domain.Chrono).timesAgo(review.createdAt) : ''}"></span>
+            <span class="review_createdAt" th:text="${T(com.Reboot.Minty.review.time.DateUtils).formatReviewDate(review.createdAt)}"></span>
             <div class="review_bottom">
                 <span class="review_score" th:text="${review.rating}"></span>
                 <span class="review_nickname" th:text="${review.nickname}"></span>

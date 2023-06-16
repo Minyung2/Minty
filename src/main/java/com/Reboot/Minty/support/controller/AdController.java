@@ -1,23 +1,28 @@
 package com.Reboot.Minty.support.controller;
 
+import com.Reboot.Minty.manager.dto.AdDto;
 import com.Reboot.Minty.member.service.UserService;
 import com.Reboot.Minty.support.entity.Ad;
 import com.Reboot.Minty.support.repository.AdRepository;
 import com.Reboot.Minty.support.service.AdService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class AdController {
@@ -32,14 +37,31 @@ public class AdController {
     private AdRepository adRepository;
 
 
-    @GetMapping("/adBoard")
-    public String showAdBoard(Model model) {
-        List<Ad> ads = adRepository.findAll();
+    @GetMapping("/marketingBoard")
+    @ResponseBody
+    public ResponseEntity<?> showAdBoard(@RequestParam(defaultValue = "0") int page) {
+        int pageSize = 10;
+        Pageable pageable = PageRequest.of(page, pageSize);
+        Page<Ad> adPage = adRepository.findAll(pageable);
+        List<Ad> ads = adPage.getContent();
 
-        model.addAttribute("ads", ads);
+        List<AdDto> adDTOs = new ArrayList<>();
+        for (Ad ad : ads) {
+            AdDto adDto = new AdDto();
+            adDto.convertToDTO(ad);
+            adDto.setTotalPages(adPage.getTotalPages());
+            adDTOs.add(adDto);
+        }
 
-        return "ad/adBoard";
+        Map<String, Object> response = new HashMap<>();
+        response.put("adList", adDTOs);
+        response.put("currentPage", page);
+        response.put("pageSize", pageSize);
+        response.put("totalPages", adPage.getTotalPages());
+
+        return ResponseEntity.ok(response);
     }
+
 
 
     @GetMapping("/adWrite")
@@ -53,8 +75,10 @@ public class AdController {
         if (!imageFile.isEmpty()) {
             try {
                 String fileName = imageFile.getOriginalFilename();
-                String filePath = "D:/intellijPrac/Minty00/src/main/resources/static/adimage/"; // Replace with the actual file path where you want to save the images
-                String savedFileName = filePath + fileName;
+                String filePath = "src/main/resources/static/adimage/"; // Replace with the actual file path where you want to save the images
+                String absolutePath = new File("").getAbsolutePath();
+                String savedFileName = absolutePath + File.separator + filePath + fileName;
+                //String savedFileName = filePath + fileName;
                 imageFile.transferTo(new File(savedFileName));
 
                 ad.setImage(fileName);
@@ -81,7 +105,7 @@ public class AdController {
 
         adService.saveAd(ad);
 
-        return "redirect:/adBoard";
+        return "redirect:/";
     }
 
 }

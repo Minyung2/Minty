@@ -77,13 +77,47 @@
       height: 300px;
     }
 
-
-    .attendance {
+    .deco {
       flex-grow: 1;
       border: 2px solid #000;
       height: 300px;
     }
+.tab-button {
+      display: block;
+      padding: 10px 20px 10px 20px;
+      float: left;
+      text-decoration: none;
+      cursor: pointer;
+      font-family:'font';
+      margin-right: 10px;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      border:2px solid black;
+      border-radius: 45px;
+      background-color: white;
+      transition: color 0.5s, background-color 0.5s ease-in-out;
+      color:black;
+      }
+      .tab-content {
+        display: none;
+        padding: 10px;
+      }
+      .show {
+        display: block;
+      }
+      .select {
+        background-color:#F5A9E1;
+       color:#FFFFFF;
+      }
+     .tab-button:hover {
+      background-color:#94E6DF;
+    }
 
+
+    .tab-content g{
+        margin: 0;
+        padding: 20px;
+    }
     /* 네비게이션 바 영역 스타일 */
     .Categories-area {
         padding: 10px;
@@ -138,7 +172,7 @@
 
     .charge {
         width: 180px;
-        height: 95px;
+        height:66px;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -154,6 +188,7 @@
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script th:inline="javascript">
+    //충전창
     function openNewWindow() {
         var popupWidth = 900;
         var popupHeight = 800;
@@ -162,6 +197,27 @@
 
         window.open(/*[[@{/charge}]]*/, '_blank', 'width=' + popupWidth + ', height=' + popupHeight + ', left=' + leftPosition + ', top=' + topPosition);
     }
+
+     //출금창
+      function openNewWindow2() {
+        var popupWidth = 900;
+        var popupHeight = 800;
+        var leftPosition = (window.screen.width - popupWidth) / 2;
+        var topPosition = (window.screen.height - popupHeight) / 2;
+
+        window.open(/*[[@{/wthdr}]]*/, '_blank', 'width=' + popupWidth + ', height=' + popupHeight + ', left=' + leftPosition + ', top=' + topPosition);
+    }
+
+     //개인정보수정칸
+      function edit() {
+        var popupWidth = 900;
+        var popupHeight = 800;
+        var leftPosition = (window.screen.width - popupWidth) / 2;
+        var topPosition = (window.screen.height - popupHeight) / 2;
+
+        window.open(/*[[@{/edit}]]*/, '_blank', 'width=' + popupWidth + ', height=' + popupHeight + ', left=' + leftPosition + ', top=' + topPosition);
+    }
+
 
       $(document).ready(function() {
         $(".charge").on("mouseover", function() {
@@ -174,117 +230,14 @@
         });
     });
 
-   $(document).ready(function() {
-                var token = $("meta[name='_csrf']").attr("content");
-                var header = $("meta[name='_csrf_header']").attr("content");
-                var today = moment().format('YYYY-MM-DD');
-
-                $('#calendar').fullCalendar({
-                    header: {
-                        left: '',
-                        center: 'title',
-                        right: ''
-                    },
-                    dayRender: function(date, cell) {
-                        var image = $('<img>', {
-                            class: 'attendance-image',
-                            src: '../image/myPage/check_x.png',
-                            click: function() {
-                                var clickedDate = moment(date).format('YYYY-MM-DD');
-
-                                if (clickedDate === 'favicon.ico') {
-                                    return;
-                                }
-
-                                if (clickedDate === today) {
-                                    var $image = $(this);
-
-                                    $.ajax({
-                                        type: 'POST',
-                                        url: 'attendance/save',
-                                        contentType: 'application/json',
-                                        data: JSON.stringify({ date: clickedDate }),
-                                        success: function(response) {
-                                            $image.attr('src', '../image/myPage/check2.png');
-                                            // Update points display
-                                            updatePoints(response.points);
-                                        },
-                                        beforeSend: function(xhr) {
-                                            xhr.setRequestHeader(header, token);
-                                        },
-                                        error: function(error) {
-                                            console.log(error);
-                                        }
-                                    });
-                                } else {
-                                    console.log("출석체크는 당일만 가능합니다.");
-                                }
-                            }
-                        });
-
-                        var clickedDate = moment(date).format('YYYY-MM-DD');
-                        $.ajax({
-                            type: 'GET',
-                            url: 'attendance/checkStatus/' + clickedDate,
-                            success: function(response) {
-                                if (response) {
-                                    image.attr('src', '../image/myPage/check2.png');
-                                }
-                            },
-                            beforeSend: function(xhr) {
-                                xhr.setRequestHeader(header, token);
-                            },
-                            error: function(error) {
-                                console.log(error);
-                            }
-                        });
-
-                        $(cell).append(image);
-                    }
-                });
-
-                function updatePoints(points) {
-                    // Update the points display element with the new points value
-                    $('#points-display').text(points);
-                }
-            });
-
 </script>
-
 
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
-    <style>
-        #calendar {
-            width: 550px;
-            margin: 0;
-            float: left;
-        }
-        .attendance-image {
-            width: 90%;
-            height: 90%;
-            margin-left: 3px;
-        }
-        .check-button {
-            display: inline-block;
-            margin-top: 5px;
-            cursor: pointer;
-            border: none;
-        }
-    </style>
-<!--    <th:block layout:fragment="script">-->
-<!--        <script src='https://fullcalendar.io/releases/fullcalendar/3.9.0/lib/moment.min.js'></script>-->
-<!--        <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.css' rel='stylesheet'/>-->
-<!--        <link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.print.css' rel='stylesheet' media='print'/>-->
-<!--        <script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/fullcalendar.min.js'></script>-->
-<!--    </th:block>-->
-
 </head>
 <body>
 <div layout:fragment="content">
-
-
 
     <div class="container">
 
@@ -295,22 +248,22 @@
                 <div class="info">
                     <div class="ratings">
                         <img src="/image/myPage/score.PNG" alt="평점 이미지">
-                        <div class="score">3.7</div>
+                        <div class="score">평점칸</div>
                     </div>
                     <div class="information">
                         <div class="nickname">Lv. <span th:text="${user.level}"></span> <span th:text="${user.nickName}"></span></div>
                         <div class="email"><span th:text="${user.email}"></span></div>
                     </div>
                 </div>
-                        <img class="user_exp" th:if="${user.exp != null}">
-                        <th:block th:switch="${user.exp}">
-                        <img th:case="0" th:src="@{/image/mypage/exp0.png}" alt="0">
-                        <img th:case="10" th:src="@{/image/mypage/exp10.png}" alt="10">
-                        <img th:case="20" th:src="@{/image/mypage/exp20.png}" alt="20">
-                        <img th:case="30" th:src="@{/image/mypage/exp30.png}" alt="30">
-                        <img th:case="*" th:src="@{/image/mypage/exp40.PNG}" alt="40">
-                        </th:block>
-                        </img>
+                <img class="user_exp" th:if="${user.exp != null}">
+                <th:block th:switch="${user.exp}">
+                    <img th:case="0" th:src="@{/image/mypage/exp0.png}" alt="0">
+                    <img th:case="10" th:src="@{/image/mypage/exp10.png}" alt="10">
+                    <img th:case="20" th:src="@{/image/mypage/exp20.png}" alt="20">
+                    <img th:case="30" th:src="@{/image/mypage/exp30.png}" alt="30">
+                    <img th:case="*" th:src="@{/image/mypage/exp40.PNG}" alt="40">
+                </th:block>
+                </img>
             </div>
 
             <div class="moneyView">
@@ -330,38 +283,56 @@
                         <span th:text="${user.balance}"></span>
                     </div>
                 </div>
-            <div class="pay">
+                <div class="pay">
                     <div class="pay-m">
                         <div class="charge" onclick="openNewWindow()">
                             <img src="/image/myPage/charge_in.png" width="30px;" height="30px;" alt="충전아이콘">
                             <span>충전하기</span>
                         </div>
-                        <div class="charge" onclick="openNewWindow()">
-                            <img src="/image/myPage/charge_out.png" width="30px;" height="30px;" alt="충전아이콘">
-                            <span>출금하기(미구현)</span>
+                        <div class="charge" onclick="openNewWindow2()">
+                            <img src="/image/myPage/charge_out.png" width="30px;" height="30px;" alt="출금아이콘">
+                            <span>출금하기</span>
+                        </div>
+                        <div class="charge" onclick="edit()">
+                            <img src="/image/myPage/charge_out.png" width="30px;" height="30px;" alt="개인정보수정">
+                            <span>개인정보수정</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="attendance">
-                <div id="calendar"></div>
+            <div class="deco">
+
             </div>
         </div>
 
         <div class="Categories">
-            <!-- 네비게이션 바 내용 -->
+            <ul class="list">
+                <li class="tab-button p select">판매내역</li>
+                <li class="tab-button i">급해요</li>
+                <li class="tab-button g">후기</li>
+            </ul>
         </div>
-        네비게이션 바 영역
 
 
         <div class="board-area">
             <!-- 보드 영역 내용 -->
             보드 영역
         </div>
+        <div class="tab-content p show">
+            <p>판매내역 보드</p>
+        </div>
 
+        <div class="tab-content i">
+            <p>급해요 보드</p>
+        </div>
+
+        <div class="tab-content g">
+            <p>ㅇ</p>
+        </div>
     </div>
 
+    <script type="text/javascript" th:src="@{/js/myPage.js}"></script>
 </div>
 </body>
 </html>

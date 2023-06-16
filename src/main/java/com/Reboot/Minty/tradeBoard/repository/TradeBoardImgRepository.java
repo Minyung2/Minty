@@ -10,6 +10,4 @@ import java.util.List;
 public interface TradeBoardImgRepository extends JpaRepository<TradeBoardImg,Long> {
 
     List<TradeBoardImg> findByTradeBoardId(Long boardId);
-
-
 }

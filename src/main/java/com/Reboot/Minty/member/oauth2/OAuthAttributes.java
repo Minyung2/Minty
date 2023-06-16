@@ -49,7 +49,6 @@ public class OAuthAttributes {
                 (String) kakao_account.get("age_range"),
                 (String) kakao_account.get("phone_number"),
                 (String) kakao_account.get("gender"));
-
     }
 
     public static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {

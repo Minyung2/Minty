@@ -1,6 +1,7 @@
 package com.Reboot.Minty.member.controller;
 
 import com.Reboot.Minty.member.entity.User;
+import com.Reboot.Minty.member.repository.UserRepository;
 import com.Reboot.Minty.member.service.UserService;
 import com.Reboot.Minty.review.entity.Review;
 import com.Reboot.Minty.review.service.ReviewService;
@@ -17,6 +18,11 @@ import java.util.List;
 public class UserShopController {
     @Autowired
     private ReviewService reviewService;
+    private final UserRepository userRepository;
+    public UserShopController(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
 
     @Autowired
     private UserService userService;
@@ -28,9 +34,14 @@ public class UserShopController {
         User user = userService.getUserInfo(userEmail);
         Long userId = user.getId();
 
-        List<Review> myReviews = reviewService.getReviewsByBuyerId(userId);
+        List<Review> receivedReviews = reviewService.getReceivedReviews(userId);
 
-        model.addAttribute("myReviews", myReviews);
+        if (user != null) {
+            model.addAttribute("user", user);
+            model.addAttribute("receivedReviews", receivedReviews);
+        }else {
+            model.addAttribute("errorMessage", "회원 정보를 찾을 수 없습니다.");
+        }
 
         return "member/userShop";
     }

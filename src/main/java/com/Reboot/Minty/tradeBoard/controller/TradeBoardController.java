@@ -129,9 +129,9 @@ public class TradeBoardController {
     @PostMapping("/tradeWrite")
     @ResponseBody
     public ResponseEntity<?> tradeSave(@Valid TradeBoardDto tradeBoardDto,
-                                    BindingResult bindingResult,
-                                    @RequestPart("fileUpload") List<MultipartFile> mf,
-                                    HttpServletRequest request) {
+                                       BindingResult bindingResult,
+                                       @RequestPart("fileUpload") List<MultipartFile> mf,
+                                       HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         if (bindingResult.hasErrors()) {
             errors = bindingResult.getFieldErrors().stream()
@@ -184,16 +184,16 @@ public class TradeBoardController {
             errors.put("subCategory", "서브 카테고리를 선택해주세요.");
         }
         List<String> filenames = new ArrayList<>();
-        boolean isEmpty = true;
+        boolean images = true;
         if (mf.size() > 0) {
             for (MultipartFile file : mf) {
-                if (!file.isEmpty() || file.getContentType().startsWith("image")) {
-                    isEmpty = false;
+                if (file.getContentType().startsWith("image")) {
+                    images = false;
                     break;
                 }
             }
         }
-        if (isEmpty) {
+        if (!images) {
             errors.put("fileUpload", "이미지 파일은 필수입니다.");
         }if (!errors.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);

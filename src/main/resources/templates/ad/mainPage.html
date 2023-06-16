@@ -29,15 +29,11 @@
 <h1>Main 페이지</h1>
 <div class="ad-card">
     <span class="close-btn" onclick="closeAd()">×</span>
-    <!-- 이미지 표시 -->
     <img th:src="@{${imagePath} + ${ad.image}}" alt="Ad Image">
 </div>
 
 <script>
-    function closeAd() {
-        var adCard = document.getElementsByClassName('ad-card')[0];
-        adCard.style.display = 'none';
-    }
+
 </script>
 </body>
 </html>

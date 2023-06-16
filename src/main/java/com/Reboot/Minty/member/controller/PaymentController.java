@@ -2,7 +2,9 @@ package com.Reboot.Minty.member.controller;
 
 import com.Reboot.Minty.manager.service.TwilioService;
 import com.Reboot.Minty.member.entity.User;
+import com.Reboot.Minty.member.repository.UserRepository;
 import com.Reboot.Minty.member.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.json.simple.JSONObject;
@@ -12,9 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,16 +24,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
 
 @Controller
 @RequestMapping(value = "/")
 public class PaymentController {
+
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private UserService userService;
 
     @Autowired
     private TwilioService twilioService;
-
 
     @Value("${payment.secretKey}")
     private String secretKey;
@@ -118,7 +121,7 @@ public class PaymentController {
         String message = "[Minty]\n" + nickname + " 님 " + amount + " 원 충전이 완료되었습니다.\n총 잔고 " + balance + " 원.";
         //twilioService.sendSms(mobile, message);
 
-        return "pay/success";
+        return "redirect:/member/myPage";
     }
 
     @GetMapping(value = "fail")
@@ -141,6 +144,30 @@ public class PaymentController {
         return "pay/pay";
     }
 
+    // 출금하기 페이지 이동
+    @GetMapping(value = "wthdr")
+    public String wthdr(Model model, HttpSession session) {
+        String userEmail = (String) session.getAttribute("userEmail"); // userEmail 값을 가져옵니다.
+        User user = userRepository.findByEmail(userEmail);
 
+        model.addAttribute("user", user);
+
+        return "pay/wthdr";
+    }
+
+    @PostMapping("/withdraw")
+    public String withdrawBalance(@RequestParam("amount") Integer amount, HttpSession session) {
+        try {
+            String userEmail = (String) session.getAttribute("userEmail"); // userEmail 값 가져오기
+
+            System.out.println(userEmail);
+            System.out.println(amount);
+            userService.wthdrBalance(userEmail, amount);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "redirect:/member/myPage";
+    }
 
 }

@@ -14,7 +14,7 @@
 <body>
 <h2>Reboot</h2>
 
-    <form th:action="@{/saveLocation}"  role="form" method="post"  th:object="${joinLocationDto}">
+    <form action="saveLocation"  role="form" method="post"  th:object="${joinLocationDto}">
     <div class="map_wrap">
         <div id="map" style="width:100%;height:100%;"></div>
         <div class="hAddr">
@@ -26,7 +26,6 @@
         </div>
 
         <input type="submit" value="위치 찰칵">
-        <p>여기 온거 마즘?</p>
     </div>
         <input type="hidden" id="latitude"  name="latitude">
         <input type="hidden" id="longitude"  name="longitude">
@@ -36,6 +35,8 @@
 
 </div>
 <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=318f7badeef3abdc331d6d8c3cace014"></script>
+
+
 <script type="text/javascript" th:src="@{/js/map.js}"></script>
 
 </body>

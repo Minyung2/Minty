@@ -10,7 +10,6 @@ import lombok.*;
 @Getter
 @Setter
 @Entity
-@ToString
 public class UserLocation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
