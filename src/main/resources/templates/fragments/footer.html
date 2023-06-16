@@ -37,16 +37,17 @@
   }
 
 .ad {
-  background: white;
-  position: fixed;
-  top: 12.3vh;
-  left: -1.8vw;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  width: 13vw;
-  height: 71vh;
+      background: white;
+    position: fixed;
+    top: 12.3vh;
+    left: 1.2vw;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    width: 200px;
+    height: 675px;
+
 }
 
 .ad img {
@@ -103,9 +104,19 @@
 .updown {
   background: rgba(0,0,0,0) !important;
   cursor: pointer;
+  margin-right:2vw;
 }
 
-
+.close-btn{
+  cursor:pointer;
+  font-weight:bolder;
+  width:1.3vw;
+  height:2.5vh;
+  text-align:center;
+  border-radius:50px;
+  background: #646d7696;
+  color:white;
+}
   </style>
   </head>
   <!--광고배너-->
@@ -121,12 +132,12 @@
 
     <div class="remote">
       <div>
-        <a class="button" th:href="@{support/supportBoard}">고객센터</a>
         <a class="updown up"><img src="/image/up.png" alt="맨위로" /></a>
+        <a class="button" th:href="@{support/supportBoard}">고객센터</a>
       </div>
       <div>
-        <a class="button" th:href="@{writeForm}">글쓰기</a>
         <a class="updown down"><img src="/image/down.png" alt="맨아래로" /></a>
+        <a class="button" th:href="@{writeForm}">글쓰기</a>
       </div>
       <div>
         <a class="button"th:href="@{tradeList}">거래목록</a>
@@ -152,13 +163,11 @@
         <br>
         고객센터
       </a>
-      <a href="/adWrite">
+      <a  style="cursor: pointer;"onclick="openAd()">
         <img src="/image/ad.PNG" alt="로고 이미지" width="30px" height="30px" />
         <br>
         광고문의
-
       </a>
-
 
     </div>
     <div class="footer-info">
@@ -176,6 +185,20 @@
       $("html, body").animate({ scrollTop: $(document).height() }, 800);
     });
   });
+
+function openAd() {
+  var popupWidth = 600;
+  var popupHeight = 700;
+  var leftPosition = (window.screen.width - popupWidth) / 2;
+  var topPosition = (window.screen.height - popupHeight) / 2;
+
+  var url = "/adWrite"; // 실제로 열고자 하는 페이지의 URL로 변경해주세요
+
+  var newWindow = window.open(url, "_blank", "width=" + popupWidth + ", height=" + popupHeight + ", left=" + leftPosition + ", top=" + topPosition + ", resizable=yes");
+}
+
+
+
 
     var images = [
         "/image/ad/ff.png",
