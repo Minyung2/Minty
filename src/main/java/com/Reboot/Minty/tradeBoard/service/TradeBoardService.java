@@ -18,7 +18,10 @@ import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Streamable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,6 +32,7 @@ import java.io.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class TradeBoardService {
@@ -44,11 +48,24 @@ public class TradeBoardService {
 
 
     public Page<TradeBoard> getAllByBoardType(int boardType, Pageable pageable) {
-        return tradeBoardRepository.findAllByBoardType(boardType, pageable);
+        Page<TradeBoard> tradeBoards = tradeBoardRepository.findAllByBoardType(boardType, pageable);
+
+        // status가 5인 TradeBoard 필터링
+        List<TradeBoard> filteredTradeBoards = tradeBoards.getContent().stream()
+                .filter(tradeBoard -> tradeBoard.getStatus() != 5)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(filteredTradeBoards, pageable, tradeBoards.getTotalElements());
     }
 
     public Page<TradeBoard> getBoardsByBoardTypeAndSubCategory(int boardType, Optional<SubCategory> subCategory, Pageable pageable) {
-        return tradeBoardRepository.getBoardsByBoardTypeAndSubCategory(boardType, subCategory, pageable);
+        Streamable<TradeBoard> tradeBoards = tradeBoardRepository.getBoardsByBoardTypeAndSubCategory(boardType, subCategory, pageable);
+
+        List<TradeBoard> filteredTradeBoards = tradeBoards.stream()
+                .filter(tradeBoard -> tradeBoard.getStatus() != 5)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(filteredTradeBoards, pageable, tradeBoards.get().count());
     }
 
 
@@ -65,7 +82,12 @@ public class TradeBoardService {
     }
 
     public TradeBoard findById(Long boardId) {
-        return tradeBoardRepository.findById(boardId).orElseThrow(EntityNotFoundException::new);
+        TradeBoard tradeBoard = tradeBoardRepository.findById(boardId).orElseThrow(EntityNotFoundException::new);
+        if(tradeBoard.getStatus()==5){
+            throw new AccessDeniedException("해당 글의 접근 권한이 없습니다.");
+        }else{
+            return tradeBoard;
+        }
     }
 
     public List<TradeBoardImg> getImgList(Long boardId) {

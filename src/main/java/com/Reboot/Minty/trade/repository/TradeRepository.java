@@ -12,6 +12,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Repository
@@ -32,5 +34,10 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
     @Modifying
     @Query("UPDATE Trade t SET t.mode = :mode WHERE t.id = :tradeId")
     void updateModeById(@Param("tradeId") Long tradeId, @Param("mode") String mode);
+
+    @Modifying
+    @Query("UPDATE Trade t SET t.tradeDate = :tradeDate, t.tradeTime = :tradeTime WHERE t.id = :tradeId")
+    void updateScheduleInfo(@Param("tradeId") Long tradeId, @Param("tradeDate") LocalDate tradeDate, @Param("tradeTime") LocalTime tradeTime);
+
 
 }

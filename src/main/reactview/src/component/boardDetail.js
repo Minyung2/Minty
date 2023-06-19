@@ -22,20 +22,31 @@ const navigate = useNavigate();
      navigate(`/writeForm/${id}`, { state: { tradeBoard, imageList } });
    };
 
-  const fetchData = () => {
-    axios
-      .get(`/api/boardDetail/${id}`)
-      .then((response) => {
+const fetchData = () => {
+  axios
+    .get(`/api/boardDetail/${id}`)
+    .then((response) => {
+      if (response.status === 200) {
         setTradeBoard(response.data.tradeBoard);
         setNickName(response.data.nickName);
         let list = [...response.data.imageList];
         setImageList(list);
         setIsAuthor(response.data.isAuthor);
-      })
-      .catch((e) => {
-        console.error(e);
-      });
-  };
+      } else {
+        alert("알 수 없는 오류");
+        window.history.back(); // 이전 페이지로 이동
+      }
+    })
+    .catch((error) => {
+      if (error.response && error.response.data && error.response.data.error) {
+        alert(error.response.data.error);
+      } else {
+        alert("알 수 없는 오류");
+      }
+      window.history.back(); // 이전 페이지로 이동
+    });
+};
+
 
   useEffect(() => {
     fetchData();

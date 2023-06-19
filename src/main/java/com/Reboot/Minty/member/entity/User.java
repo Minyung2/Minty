@@ -11,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Table(name = "user")
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Setter
 @Entity

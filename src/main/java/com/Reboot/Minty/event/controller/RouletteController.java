@@ -51,6 +51,11 @@ public class RouletteController {
                 return null;
             }
 
+            int currentPoint = user.getPoint();
+            int roulettePoint = rouletteDto.getPoint();
+            int updatedPoint = currentPoint + roulettePoint;
+            user.setPoint(updatedPoint);
+
             Roulette roulette = new Roulette();
             roulette.setUser(user);
             roulette.setResult(rouletteDto.getResult());

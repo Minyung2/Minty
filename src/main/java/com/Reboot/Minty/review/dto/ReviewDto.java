@@ -6,6 +6,8 @@ import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+
 
 @Builder
 @Getter
@@ -15,24 +17,14 @@ import org.springframework.web.multipart.MultipartFile;
 @AllArgsConstructor
 public class ReviewDto {
     private Long id;
-    private String writer;
     private String imageUrl; // 이미지 파일 URL 추가
     private String contents;
     private int rating;
-    private TradeBoard tradeBoard;
     private MultipartFile imageFile;
     private String nickname;
-    private User buyerId;
     private User writerId;
-    private User sellerId;
-    private String createdAt;
-    private Trade trade;
-
-    public TradeBoard getTradeBoard() {
-        if (tradeBoard == null) {
-            return null; // 또는 다른 값 또는 처리 로직을 작성하세요.
-        }
-        return tradeBoard;
-    }
+    private User receiverId;
+    private LocalDateTime writeTime;
+    private Trade tradeId;
 
 }

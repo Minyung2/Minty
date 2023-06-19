@@ -7,6 +7,7 @@ import com.Reboot.Minty.member.service.JoinFormValidator;
 import com.Reboot.Minty.member.service.SmsService;
 import com.Reboot.Minty.member.service.UserService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -141,6 +142,8 @@ public class UserController {
 
     @PostMapping("/saveLocation")
     public String saveLocation(@ModelAttribute JoinLocationDto joinLocationDto, HttpSession session, CsrfToken csrfToken) {
+        System.out.println("saveLocation method()");
+        // Get location and address information
         String csrfTokenValue = csrfToken.getToken();
         String csrfHeaderName = csrfToken.getHeaderName();
 
@@ -151,8 +154,7 @@ public class UserController {
         String latitude = joinLocationDto.getLatitude();
         String longitude = joinLocationDto.getLongitude();
         String address = joinLocationDto.getAddress();
-        User user = (User)session.getAttribute("user");
-
+        User user = userRepository.findById((Long)session.getAttribute("userId")).orElseThrow(EntityNotFoundException::new);
         userService.saveUserLocation(user, latitude, longitude, address);
         return "redirect:/";
     }
@@ -167,6 +169,7 @@ public class UserController {
     @PostMapping("/sms/send")
     @ResponseBody
     public Mono<CustomResponse> sendSms(@RequestBody String mobileNumber, HttpServletRequest request) throws UnsupportedEncodingException, URISyntaxException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+        System.out.println("sendSms 컨트롤러");
         int isExistNumber = userRepository.countByMobile(mobileNumber);
         if (isExistNumber >= 1) {
             return Mono.error(new IllegalStateException("해당 핸드폰 번호는 이미 존재합니다."));

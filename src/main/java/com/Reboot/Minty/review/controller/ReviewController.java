@@ -1,13 +1,16 @@
 package com.Reboot.Minty.review.controller;
 
 import com.Reboot.Minty.member.entity.User;
+import com.Reboot.Minty.member.repository.UserRepository;
 import com.Reboot.Minty.member.service.UserService;
 import com.Reboot.Minty.review.dto.ReviewDto;
 import com.Reboot.Minty.review.entity.Review;
+import com.Reboot.Minty.review.repository.ReviewRepository;
 import com.Reboot.Minty.review.service.ReviewService;
 import com.Reboot.Minty.trade.entity.Trade;
 import com.Reboot.Minty.trade.repository.TradeRepository;
 import com.Reboot.Minty.trade.service.TradeService;
+import com.oracle.wls.shaded.org.apache.regexp.RE;
 import jakarta.persistence.EntityExistsException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -19,6 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.security.Principal;
 import java.util.List;
@@ -30,13 +34,18 @@ public class ReviewController {
     private final UserService userService;
     private final TradeService tradeService;
     private final TradeRepository tradeRepository;
+    private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
     @Autowired
-    public ReviewController(ReviewService reviewService, UserService userService, TradeService tradeService, TradeRepository tradeRepository) {
+    public ReviewController(ReviewRepository reviewRepository, UserRepository userRepository, ReviewService reviewService, UserService userService, TradeService tradeService, TradeRepository tradeRepository) {
         this.reviewService = reviewService;
         this.userService = userService;
         this.tradeService = tradeService;
         this.tradeRepository = tradeRepository;
+        this.userRepository = userRepository;
+        this.reviewRepository = reviewRepository;
     }
+
 
     // 리뷰 작성 폼을 보여줌
     @GetMapping("/review/{tradeId}")
@@ -47,9 +56,12 @@ public class ReviewController {
         Trade trade = tradeRepository.findById(tradeId).orElseThrow(EntityExistsException::new);
         User user = userService.getUserInfo(userEmail);
 
+        User receiver = reviewService.findReceiverId(trade, user);
+
         reviewDto.setNickname(user.getNickName());
-        reviewDto.setId(user.getId());
-        reviewDto.setTrade(trade);
+        reviewDto.setWriterId(user);
+        reviewDto.setReceiverId(receiver);
+        reviewDto.setTradeId(trade);
 
         model.addAttribute("trade", trade);
         model.addAttribute("reviewDto", reviewDto);
@@ -58,38 +70,40 @@ public class ReviewController {
     }
 
     // 리뷰를 생성함
-    @PostMapping("/")
-    @Transactional
-    public String createReview(@ModelAttribute("reviewDto") @Valid ReviewDto reviewDto, BindingResult bindingResult, Principal principal, HttpServletRequest request, Model model) {
+
+    @PostMapping("/reviews/{tradeId}")
+    public String createReview(@PathVariable("tradeId") Long tradeId, @ModelAttribute("reviewDto") @Valid ReviewDto reviewDto, BindingResult bindingResult, Principal principal, HttpServletRequest request, Model model) {
         HttpSession session = request.getSession();
         String userEmail = (String) session.getAttribute("userEmail");
         User user = userService.getUserInfo(userEmail);
         reviewDto.setNickname(user.getNickName());
+        Trade trade = tradeRepository.findById(tradeId).orElseThrow(EntityExistsException::new);
+        User receiver = reviewService.findReceiverId(trade, user);
+
+        reviewDto.setWriterId(user); // 수정된 부분
+        reviewDto.setTradeId(trade);
+        reviewDto.setReceiverId(receiver);
+
+        model.addAttribute("reviewDto", reviewDto);
+        model.addAttribute("trade", trade);
 
         if (bindingResult.hasErrors()) {
-            // 유효성 검사 실패 시 처리 로직을 작성하세요.
-            model.addAttribute("reviewDto", reviewDto); // 입력된 데이터를 유지하기 위해 reviewDto를 다시 모델에 추가합니다.
-            return "error"; // 예: 유효성 검사 실패 시 에러 페이지로 이동하도록 "error"로 변경합니다.
+            // 유효성 검사 실패 시 처리 로직
         }
 
         MultipartFile imageFile = reviewDto.getImageFile();
         if (imageFile != null && !imageFile.isEmpty()) {
             String originalFilename = imageFile.getOriginalFilename();
-            // 파일 저장 로직을 여기에 구현하세요. (예: Amazon S3, 로컬 디렉토리 등)
-            // reviewDto.setImageUrl(저장된 파일 경로 또는 파일명);
+            // 파일을 저장하는 로직을 구현해야 합니다. (예: Amazon S3, 로컬 디렉토리 등)
+            // reviewDto.setImageFile(저장된 파일 경로 또는 파일명);
         }
 
-        Trade trade = tradeRepository.findById(reviewDto.getTrade().getId()).orElseThrow(() -> new IllegalArgumentException("Trade not found"));
-
-        reviewDto.setTrade(trade); // Trade 객체를 ReviewDto에 설정
-
         reviewService.createReview(reviewDto);
-        userService.increaseExp(userEmail, 10);
 
-        return "redirect:/";
+        userService.increaseExp(userEmail, 10); //거래완료에도 똑같이 넣으면댐
+
+        return "redirect:/trade/" + tradeId;
     }
-
-
 
     // 특정 ID에 해당하는 리뷰를 삭제함
     @PostMapping("/reviews/{id}/delete")
@@ -106,11 +120,12 @@ public class ReviewController {
         User user = userService.getUserInfo(userEmail);
         Long userId = user.getId();
 
-        List<Review> myReviews = reviewService.getReviewsByUserId(userId);
+        List<Review> myReviews = reviewService.getReviewsByWriterIdOrderByWriteTimeDesc(user);
 
         model.addAttribute("myReviews", myReviews);
         return "review/my-review";
     }
+
 
     // 내가 받은 후기 조회
     @GetMapping("/reviews-received")
@@ -120,10 +135,13 @@ public class ReviewController {
         User user = userService.getUserInfo(userEmail);
         Long userId = user.getId();
 
-        List<Review> receivedReviews = reviewService.getReceivedReviews(userId);
+        List<Review> receivedReviews = reviewService.getReceivedReviewsByReceiverIdOrderByWriteTimeDesc(user);
 
         model.addAttribute("receivedReviews", receivedReviews);
         return "review/reviews-received";
     }
+
+
+
 
 }

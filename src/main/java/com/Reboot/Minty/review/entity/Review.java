@@ -20,7 +20,7 @@ public class Review {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "writer_id")
+    @JoinColumn(name = "writer_id", nullable = false)
     private User writerId;
 
     @Column(name = "contents", nullable = false)
@@ -33,26 +33,18 @@ public class Review {
     private String imageUrl;
 
     @ManyToOne
-    @JoinColumn(name = "buyer_id")
-    private User buyerId;
-
-    @ManyToOne
-    @JoinColumn(name = "seller_id")
-    private User sellerId;
+    @JoinColumn(name = "receiver_id", nullable = false)
+    private User receiverId;
 
     @Column(name = "nickname")
     private String nickname;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "trade_id")
-    private Trade trade;
+    private Trade tradeId;
 
-    @ManyToOne
-    @JoinColumn(name = "tradeBoard_id", referencedColumnName = "id")
-    private TradeBoard tradeBoard;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "write_time")
+    private LocalDateTime writeTime;
 
     public Review() {
     }

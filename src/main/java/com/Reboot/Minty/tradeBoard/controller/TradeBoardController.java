@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.CsrfToken;
@@ -92,19 +94,28 @@ public class TradeBoardController {
 
     @GetMapping("/api/boardDetail/{boardId}")
     @ResponseBody
-    public Map<String, Object> getDetail(@PathVariable("boardId") Long boardId, HttpServletRequest request) {
+    public ResponseEntity<Map<String, Object>> getDetail(@PathVariable("boardId") Long boardId, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
-        TradeBoard tradeBoard = tradeBoardService.findById(boardId);
-        List<TradeBoardImg> imageList = tradeBoardService.getImgList(boardId);
-        String nickName = tradeBoard.getUser().getNickName();
-        HttpSession session = request.getSession();
-        boolean isAuthor = tradeBoard.getUser().getEmail().equals(session.getAttribute("userEmail"));
-        response.put("isAuthor", isAuthor);
-        response.put("tradeBoard", tradeBoard);
-        response.put("nickName", nickName);
-        response.put("imageList", imageList);
-        return response;
+        try {
+            TradeBoard tradeBoard = tradeBoardService.findById(boardId);
+            List<TradeBoardImg> imageList = tradeBoardService.getImgList(boardId);
+            String nickName = tradeBoard.getUser().getNickName();
+            HttpSession session = request.getSession();
+            boolean isAuthor = tradeBoard.getUser().getEmail().equals(session.getAttribute("userEmail"));
+            response.put("isAuthor", isAuthor);
+            response.put("tradeBoard", tradeBoard);
+            response.put("nickName", nickName);
+            response.put("imageList", imageList);
+            return ResponseEntity.ok(response); // 200 OK 응답 반환
+        } catch (AccessDeniedException e) {
+            response.put("error", "해당 게시글의 읽기 권한이 없습니다.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response); // 403 Forbidden 오류 반환
+        } catch (EntityNotFoundException e) {
+            response.put("error", "TradeBoard not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404 Not Found 오류 반환
+        }
     }
+
 
 
     @GetMapping("/writeForm/**")
@@ -174,7 +185,7 @@ public class TradeBoardController {
     @ResponseBody
     public ResponseEntity<?> tradeUpdate(@PathVariable("boardId") Long boardId,
                                          @Valid TradeBoardDto tradeBoardDto, BindingResult bindingResult,
-                                         @RequestPart(value="fileUpload", required = false) List<MultipartFile> mf,
+                                         @RequestPart(value = "fileUpload", required = false) List<MultipartFile> mf,
                                          @RequestParam("imageUrls") String imageUrlsJson,
                                          HttpSession session) throws JsonProcessingException {
         List<String> imageUrls = new ObjectMapper().readValue(imageUrlsJson, new TypeReference<>() {
@@ -189,7 +200,7 @@ public class TradeBoardController {
         }
         List<String> filenames = new ArrayList<>();
         boolean isImages = true;
-        if(mf!=null) {
+        if (mf != null) {
             for (MultipartFile file : mf) {
                 if (!file.getContentType().startsWith("image")) {
                     isImages = false;
@@ -205,10 +216,10 @@ public class TradeBoardController {
         } else {
             try {
                 Long userId = (Long) session.getAttribute("userId");
-                if(mf!=null) {
+                if (mf != null) {
                     tradeBoardService.updateBoard(userId, boardId, tradeBoardDto, mf, imageUrls);
-                }else{
-                    tradeBoardService.updateWithoutMultiFile(userId,boardId,tradeBoardDto,imageUrls);
+                } else {
+                    tradeBoardService.updateWithoutMultiFile(userId, boardId, tradeBoardDto, imageUrls);
                 }
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

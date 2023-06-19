@@ -295,6 +295,7 @@
                         </a>
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -307,11 +308,10 @@
                     <th>ID</th>
                     <th>이름</th>
                     <th>닉네임</th>
-                    <th>연령대</th>
+                    <th>연령</th>
                     <th>연락처</th>
                     <th>성별</th>
                     <th>이메일</th>
-                    <th>권한</th>
                     <th>권한변경</th>
                     <th>개인상점</th>
                     <th>수정</th>
@@ -324,10 +324,9 @@
                         <td th:text="${user.getName()}">이름</td>
                         <td th:text="${user.getNickName()}">닉네임</td>
                         <td th:text="${user.getAgeRange()}">연령대</td>
-                        <td th:text="${user.getMobile()}">연령대</td>
+                        <td th:text="${user.getMobile()}">연락처</td>
                         <td th:text="${user.getGender()}">성별</td>
                         <td th:text="${user.getEmail()}">이메일</td>
-                        <td th:text="${user.getRole()}" >권한</td>
                         <td>
                             <select name="role">
                                 <option value="USER" th:selected="${user.getRole() == T(com.Reboot.Minty.member.constant.Role).USER}">USER</option>
@@ -339,44 +338,44 @@
                         </td>
                         <td><a th:href="@{/usershop/{userId}(userId=${user.id})}">개인상점</a></td>
                         <td>
-                            <button class="btn btn-outline-dark flex-shrink-0" type="submit">업데이트</button>
+                            <button class="btn btn-outline-dark flex-shrink-0" type="submit">수정</button>
                         </td>
                     </form>
                 </tr>
                 </tbody>
             </table>
-            <nav id="pag" style="text-align: center;">
-                <ul class="pagination justify-content-center"
-                    th:with="start=${(pageable.getPageNumber() / 10 * 10) + 1},
-                  last=${(start + 9 < postList.getTotalPages()) ? (start + 9) : postList.getTotalPages()}">
-                    <li class="page-item">
-                        <a class="page-link" th:href="${postList.first} ? '#' : @{/manager(page=0)}" aria-label="First">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                    <li class="page-item" th:class="${postList.first} ? 'disabled'">
-                        <a class="page-link" th:href="${postList.first} ? '#' : @{/manager(page=${postList.number - 1})}" aria-label="Previous">
-                            <span aria-hidden="true">&lt;</span>
-                        </a>
-                    </li>
-                    <li th:each="page : ${#numbers.sequence(start, last)}"
-                        th:class="${postList.number == page - 1} ? 'page-item active' : 'page-item'">
-                        <a class="page-link" th:href="@{/manager(page=${page - 1})}">
-                            <span th:text="${page}"></span>
-                        </a>
-                    </li>
-                    <li class="page-item" th:class="${postList.last} ? 'disabled'">
-                        <a class="page-link" th:href="${postList.last} ? '#' : @{/manager(page=${postList.number + 1})}" aria-label="Next">
-                            <span aria-hidden="true">&gt;</span>
-                        </a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" th:href="${postList.last} ? '#' : @{/manager(page=${postList.getTotalPages() - 1})}" aria-label="Last">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+<!--            <nav id="pag" style="text-align: center;">-->
+<!--                <ul class="pagination justify-content-center"-->
+<!--                    th:with="start=${(pageable.getPageNumber() / 10 * 10) + 1},-->
+<!--                  last=${(start + 9 < postList.getTotalPages()) ? (start + 9) : postList.getTotalPages()}">-->
+<!--                    <li class="page-item">-->
+<!--                        <a class="page-link" th:href="${postList.first} ? '#' : @{/manager(page=0)}" aria-label="First">-->
+<!--                            <span aria-hidden="true">&laquo;</span>-->
+<!--                        </a>-->
+<!--                    </li>-->
+<!--                    <li class="page-item" th:class="${postList.first} ? 'disabled'">-->
+<!--                        <a class="page-link" th:href="${postList.first} ? '#' : @{/manager(page=${postList.number - 1})}" aria-label="Previous">-->
+<!--                            <span aria-hidden="true">&lt;</span>-->
+<!--                        </a>-->
+<!--                    </li>-->
+<!--                    <li th:each="page : ${#numbers.sequence(start, last)}"-->
+<!--                        th:class="${postList.number == page - 1} ? 'page-item active' : 'page-item'">-->
+<!--                        <a class="page-link" th:href="@{/manager(page=${page - 1})}">-->
+<!--                            <span th:text="${page}"></span>-->
+<!--                        </a>-->
+<!--                    </li>-->
+<!--                    <li class="page-item" th:class="${postList.last} ? 'disabled'">-->
+<!--                        <a class="page-link" th:href="${postList.last} ? '#' : @{/manager(page=${postList.number + 1})}" aria-label="Next">-->
+<!--                            <span aria-hidden="true">&gt;</span>-->
+<!--                        </a>-->
+<!--                    </li>-->
+<!--                    <li class="page-item">-->
+<!--                        <a class="page-link" th:href="${postList.last} ? '#' : @{/manager(page=${postList.getTotalPages() - 1})}" aria-label="Last">-->
+<!--                            <span aria-hidden="true">&raquo;</span>-->
+<!--                        </a>-->
+<!--                    </li>-->
+<!--                </ul>-->
+<!--            </nav>-->
         </div>
         <!--컨텐츠 관리-->
         <div class="board-area content-c-1">

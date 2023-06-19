@@ -1588,7 +1588,7 @@ background-image: linear-gradient(315deg, #4dccc6 0%, #96e4df 74%);
 
       <div class="tab-content g">
         <div class="review-container">
-          <div th:each="review : ${myReviews}" class="review-item">
+          <div th:each="review : ${receivedReviews}" class="review-item">
             <div class="review">
               <img class="review_rating" th:if="${review.rating != null}">
               <th:block th:switch="${review.rating}">
@@ -1608,8 +1608,7 @@ background-image: linear-gradient(315deg, #4dccc6 0%, #96e4df 74%);
                 <span class="review_content" th:text="${review.contents}" th:classappend="${review.imageUrl} ? '' : 'expand-width'"></span>
                 <button class="more-button">더 보기</button>
               </div>
-              <span class="review_createdAt"
-                    th:text="${review.createdAt != null ? T(com.Reboot.Minty.review.domain.Chrono).timesAgo(review.createdAt) : ''}"></span>
+              <!--              <span class="review_createdAt" th:text="${review.createdAt != null ? T(com.Reboot.Minty.review.domain.Chrono).timesAgo(review.createdAt) : ''}"></span>-->
               <div class="review_bottom">
                 <span class="review_score" th:text="${review.rating}"></span>
                 <span class="review_nickname" th:text="${review.nickname}"></span>

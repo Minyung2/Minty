@@ -34,7 +34,7 @@ public class UserShopController {
         User user = userService.getUserInfo(userEmail);
         Long userId = user.getId();
 
-        List<Review> receivedReviews = reviewService.getReceivedReviews(userId);
+        List<Review> receivedReviews = reviewService.getReceivedReviewsByReceiverIdOrderByWriteTimeDesc(user);
 
         if (user != null) {
             model.addAttribute("user", user);
@@ -45,5 +45,6 @@ public class UserShopController {
 
         return "member/userShop";
     }
+
 
 }

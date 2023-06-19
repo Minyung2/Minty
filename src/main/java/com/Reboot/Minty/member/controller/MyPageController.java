@@ -46,7 +46,7 @@ public class MyPageController {
         } else {
             model.addAttribute("errorMessage", "회원 정보를 찾을 수 없습니다.");
         }
-        List<Review> myReviews = reviewService.getReviewsByUserId(userId);
+        List<Review> myReviews = reviewService.getReviewsByWriterIdOrderByWriteTimeDesc(user);
         model.addAttribute("myReviews", myReviews);
 
         return "member/myPage";

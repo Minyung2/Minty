@@ -21,12 +21,12 @@
       if (response.hasOwnProperty("smsResponse") && response.smsResponse.statusCode === "202") {
         $(".chk-code").removeClass("chk-code");
         alert("인증번호가 발송되었습니다.");
-        $("#verificationTime").text("요청 시간: " + currentTime);
+        $("#verificationTime").text("요청 시간: " + currentTime); // Update verification time in HTML
 
         // Calculate expiration time
         var verificationTimeLimit = response.verificationTimeLimit;
-        var minutes = parseInt(verificationTimeLimit.slice(2, -1));
-        var expirationTime = minutes * 60 * 1000;
+        var minutes = parseInt(verificationTimeLimit.slice(2, -1)); // Extract minutes from the format "PT3M"
+        var expirationTime = minutes * 60 * 1000; // Convert minutes to milliseconds
 
         var interval = 1000; // 1 second interval
 
@@ -56,7 +56,7 @@
     error: function (xhr, status, error) {
       if (xhr.status === 400) {
       console.log(error);
-        alert(xhr.responseJSON.message);
+        alert(xhr.responseJSON.message); // Display the server's error message
       } else {
         alert("서버와의 통신에 문제가 발생했습니다. 상태 코드: " + xhr.status);
       }

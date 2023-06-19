@@ -1,6 +1,5 @@
 package com.Reboot.Minty.interceptor;
 
-import com.Reboot.Minty.member.entity.User;
 import com.Reboot.Minty.member.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,15 +25,15 @@ public class UserLocationInterceptor implements HandlerInterceptor {
         OAuth2User oAuth2User = token.getPrincipal();
         Map<String, Object> kakao_account = (Map<String, Object>) oAuth2User.getAttribute("kakao_account");
         Map<String, Object> naver_account = (Map<String, Object>) oAuth2User.getAttribute("response");
-        User user = new User();
+        Long userId;
         if(kakao_account!=null) {
-            user = userService.getUserInfo((String)kakao_account.get("email"));
+            userId = userService.getUserId((String)kakao_account.get("email"));
         } else {
-            user = userService.getUserInfo((String)naver_account.get("email"));
+            userId= userService.getUserId((String) naver_account.get("email"));
         }
         HttpSession session = request.getSession();
-        session.setAttribute("user", user);
-        boolean userHasLocation = userService.userHasLocation(user.getId());
+        session.setAttribute("userId", userId);
+        boolean userHasLocation = userService.userHasLocation(userId);
         if (userHasLocation) {
             response.sendRedirect("/");
         } else {
