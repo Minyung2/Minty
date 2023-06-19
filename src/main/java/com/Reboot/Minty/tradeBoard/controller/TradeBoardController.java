@@ -205,7 +205,11 @@ public class TradeBoardController {
         } else {
             try {
                 Long userId = (Long) session.getAttribute("userId");
-                tradeBoardService.updateBoard(userId, boardId, tradeBoardDto, mf, imageUrls);
+                if(mf!=null) {
+                    tradeBoardService.updateBoard(userId, boardId, tradeBoardDto, mf, imageUrls);
+                }else{
+                    tradeBoardService.updateWithoutMultiFile(userId,boardId,tradeBoardDto,imageUrls);
+                }
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
             }

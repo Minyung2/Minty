@@ -137,7 +137,7 @@ public class TradeBoardService {
         if (user != tradeBoard.getUser()) {
             new IllegalStateException("수정할 수 있는 권한이 없습니다");
         }
-        if(!mf.isEmpty()) {
+        if (!mf.isEmpty()) {
             MultipartFile firstFile = mf.get(0);
             String filename = firstFile.getOriginalFilename();
             String filenameWithoutExtension = filename.substring(0, filename.lastIndexOf('.'));
@@ -166,12 +166,12 @@ public class TradeBoardService {
 
             // 이미지 리스트 기존 파일 삭제, DB 삭제
 
-            for(TradeBoardImg tradeBoardImg : imgList){
+            for (TradeBoardImg tradeBoardImg : imgList) {
                 // Check if the image is in the list of URLs sent by the client
                 if (!imageUrls.contains(tradeBoardImg.getImgUrl())) {
                     // If not, delete it
                     tradeBoardImgRepository.delete(tradeBoardImg);
-                    deleteFile(bucketName,tradeBoardImg.getImgUrl());
+                    deleteFile(bucketName, tradeBoardImg.getImgUrl());
                 }
             }
             try {
@@ -195,21 +195,38 @@ public class TradeBoardService {
                 e.printStackTrace();
             }
         }
+    }
 
-        // updateWithoutMultiFile
-//        else{
-//            for (int i = 0; i < imageUrls.size(); i++) {
-//                String imageUrl = imageUrls.get(i);
-//                int existingIndex = imgList.indexOf(imageUrl);
-//                if (existingIndex != -1 && existingIndex != i) {
-//                    // Image URL exists in the database, but the order has changed
-//                    TradeBoardImg tradeBoardImg = tradeBoardImgRepository.findByImageUrlAndTradeBoardId(imageUrl, boardId);
-//                    tradeBoardImg.setOrderIndex(i); // Update the new order index
-//                    tradeBoardImgRepository.save(tradeBoardImg);
-//                }
-//            }
-//        }
+    public void updateWithoutMultiFile(Long userId, Long boardId, TradeBoardDto tradeBoardDto, List<String> imageUrls) {
+        String firstFile = imageUrls.get(0);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+        TradeBoard tradeBoard =  tradeBoardRepository.findById(boardId).orElseThrow(EntityNotFoundException::new);
+        UserLocation userLocation = userLocationRepository.findByUserId(userId);
+        tradeBoardDto.updateEntity(tradeBoard);
+        // 순서 바뀌었을 때
+        if(firstFile!=tradeBoard.getThumbnail()){
+            tradeBoard.setThumbnail(firstFile);
+        // 아닐때
+        }else{
+            tradeBoard.setThumbnail(imageUrls.get(0));
+        }
+        tradeBoard.setUser(user);
+        tradeBoard.setUserLocation(userLocation);
+        tradeBoardRepository.save(tradeBoard);
 
+        // 이미지 파일들
+        List<TradeBoardImg> imgList = tradeBoardImgRepository.findByTradeBoardId(boardId);
+
+        for (TradeBoardImg tradeBoardImg : imgList) {
+            tradeBoardImgRepository.delete(tradeBoardImg);
+        }
+        for(String img : imageUrls){
+            TradeBoardImg tradeBoardImg = new TradeBoardImg();
+            tradeBoardImg.setTradeBoard(tradeBoard);
+            tradeBoardImg.setImgUrl(img);
+            tradeBoardImgRepository.save(tradeBoardImg);
+        }
     }
 
     public void deleteFile(String bucketName, String objectName) {
