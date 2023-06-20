@@ -203,20 +203,25 @@ function TradeForm({ selectedTopCateId, selectedSubCateId, boardType, csrfToken,
                             <Form.Label className="me-2">가격</Form.Label>
                         </Col>
                         <Col md={10}>
-                            <Form.Control
-                                name="price"
-                                type="number"
-                                defaultValue={tradeBoard ? tradeBoard.price : ""}
-                                isInvalid={error && error.price}
-                                onChange={(e) => {
-                                    const {inputValue, setInputValue} = e.target.value;
-                                    if (!/^\d+$/.test(inputValue)) {
-                                          alert("숫자만 입력할 수 있습니다");
-                                        // 숫자 이외의 문자 제거하기
-                                        setInputValue(inputValue.replace(/\D/g, ""));
-                                    }
-                                }}
-                            />
+                          <Form.Control
+                            name="price"
+                            type="text"
+                            defaultValue={tradeBoard ? parseInt(tradeBoard.price) : ""}
+                            isInvalid={error && error.price}
+                            onKeyPress={(e) => {
+                              const inputValue = e.target.value;
+                              if (e.key === "." || (e.key === "e" && inputValue.includes("e"))) {
+                                e.preventDefault();
+                              }
+                            }}
+                            onChange={(e) => {
+                              const inputValue = e.target.value;
+                              if (!/^\d*$/.test(inputValue)) {
+                                alert("숫자만 입력할 수 있습니다");
+                                e.target.value = inputValue.replace(/\D/g, "");
+                              }
+                            }}
+                          />
                         </Col>
                     </Form.Group>
                     {error && error.price && <p className="text-danger">{error.price}</p>}
@@ -236,7 +241,7 @@ function TradeForm({ selectedTopCateId, selectedSubCateId, boardType, csrfToken,
                         </Col>
                     </Form.Group>
                     {error && error.content && <p className="text-danger">{error.content}</p>}
-                    <Button as="input" type="submit" value="내셈" />
+                    <Button as="input" type="submit" value="등록" />
                 </Form >
             </Col >
         </Row >
