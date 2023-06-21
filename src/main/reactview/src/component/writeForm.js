@@ -203,7 +203,7 @@ function WriteForm(props) {
                         imageList={imageList}
                     />
                 )}
-                {(subCategory === "emergencyJob" && targetCategory === "tradeBoard") && <JobForm />}
+                {(subCategory === "emergencyJob" && targetCategory === "tradeBoard") && <JobForm csrfToken={csrfToken}/>}
                 {(subCategory === "common" && targetCategory === "commonBoard") && <CommonForm />}
                 <br />
             </Container>

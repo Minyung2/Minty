@@ -4,6 +4,7 @@ import WriteForm from './component/writeForm';
 import BoardList from './component/boardList';
 import Header from './component/header';
 import BoardDetail from './component/boardDetail';
+import JobList from './component/jobList';
 import axios from 'axios';
 import './css/global.css';
 import { Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom';
@@ -37,6 +38,8 @@ function App() {
                     <Route path="/boardList/:boardType/category/:id" element={<BoardList />} />
                     <Route path="/boardList/:boardType/category/:id/:page" element={<BoardList />} />
                     <Route path="/boardDetail/:id" element={<BoardDetail csrfToken={csrfToken} />} />
+                    <Route path="/jobList" element={<JobList />} />
+                    <Route path="/jobList/search/:searchText" element={<JobList />} />
                 </Routes>
             </div>
         </React.Fragment>
