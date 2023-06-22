@@ -1,34 +1,30 @@
 package com.Reboot.Minty.job.dto;
 
 import com.Reboot.Minty.job.entity.Job;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import lombok.Data;
-import org.modelmapper.ModelMapper;
+import com.querydsl.core.annotations.QueryProjection;
+import jakarta.persistence.Column;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+import java.sql.Timestamp;
+@Getter
+@Setter
 public class JobDto {
-
-    @NotBlank(message = "제목은 필수 입니다.")
+    private Long id;
     private String title;
-    @NotBlank(message = "내용은 필수 입니다.")
-    private String content;
-
-    @NotBlank(message = "주소 입력은 필수 입니다.")
+    private Timestamp createdDate;
     private String jobLocation;
+    private int payTotal;
+    private String thumbnail;
 
-    private String payType;
-
-    @Positive(message = "양수만 입력해주세요.")
-    @NotNull(message = "가격은 필수입니다.")
-    private Integer payTotal;
-
-    private static ModelMapper modelMapper =  new ModelMapper();
-
-    public static Job toEntity(JobDto dto ){return modelMapper.map(dto,Job.class);}
-
-    public void updateEntity(Job job){
-        modelMapper.map(this, job);
+    @QueryProjection
+    public JobDto(Long id, String title, Timestamp createdDate,
+                  String jobLocation, int payTotal, String thumbnail) {
+        this.id = id;
+        this.title = title;
+        this.createdDate = createdDate;
+        this.jobLocation = jobLocation;
+        this.payTotal = payTotal;
+        this.thumbnail = thumbnail;
     }
 }

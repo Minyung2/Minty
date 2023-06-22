@@ -1,6 +1,7 @@
 package com.Reboot.Minty.job.controller;
 
 import com.Reboot.Minty.job.dto.JobDto;
+import com.Reboot.Minty.job.dto.JobFormDto;
 import com.Reboot.Minty.job.dto.JobSearchDto;
 import com.Reboot.Minty.job.entity.Job;
 import com.Reboot.Minty.job.service.JobService;
@@ -33,29 +34,26 @@ public class JobController {
     @GetMapping("/jobList/**")
     public String jobList(){return "../static/index";}
 
-    @GetMapping(value = { "/api/jobList/","/api/jobList/{page}", "/api/jobList/searchQuery/{searchQuery}/{page}" })
+    @GetMapping(value = { "/api/jobList/","/api/jobList/{page}", "/api/jobList/searchQuery/{searchBy}/{searchQuery}/{page}" })
     @ResponseBody
     public Map<String, Object> getJobList(
-            JobSearchDto jobSearchDto,
-            @PathVariable(value = "searchQuery", required = false) Optional<String> searchQuery,
-            @PathVariable(value = "page", required = false) Optional<Integer> page
+            JobSearchDto jobSearchDto, @PathVariable(value = "page", required = false) Optional<Integer> page
     ) {
-        jobSearchDto.setSearchBy("content"); // or other field
-        jobSearchDto.setSearchQuery(searchQuery.orElse(null));
-        Pageable pageable = PageRequest.of(page.orElse(0), 10, Sort.by(Sort.Direction.DESC, "createdDate"));
-        Page<Job> jobPage = jobService.getJobPage(jobSearchDto, pageable);
-
+        Pageable pageable = PageRequest.of(page.isPresent()?page.get() - 1 : 0,10);
+        Page<JobDto> jobPage = jobService.getJobPage(jobSearchDto, pageable);
+        System.out.println(jobPage.getTotalPages());
+        System.out.println(jobPage.getNumber());
         Map<String, Object> response = new HashMap<>();
         response.put("jobPage", jobPage);
+        response.put("JobSearchDto",jobSearchDto);
         response.put("totalPages", jobPage.getTotalPages());
-        response.put("page", jobPage.getNumber() + 1); // Add 1 to match the frontend page numbering
-
+        response.put("page", jobPage.getNumber());
         return response;
     }
 
     @PostMapping("/jobWrite")
     @ResponseBody
-    public ResponseEntity<?> jobSave(@Valid JobDto jobDto,
+    public ResponseEntity<?> jobSave(@Valid JobFormDto jobFormDto,
                                      BindingResult bindingResult,
                                      @RequestPart("fileUpload") List<MultipartFile> mf
                                      , HttpServletRequest request){
@@ -69,7 +67,7 @@ public class JobController {
         Long jobId;
         Long userId = (Long) session.getAttribute("userId");
         try{
-            jobId = jobService.save(userId, jobDto, mf);
+            jobId = jobService.save(userId, jobFormDto, mf);
         }catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
         }

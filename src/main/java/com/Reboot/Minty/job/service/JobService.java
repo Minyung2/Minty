@@ -2,9 +2,11 @@ package com.Reboot.Minty.job.service;
 
 import com.Reboot.Minty.config.ResizeFile;
 import com.Reboot.Minty.job.dto.JobDto;
+import com.Reboot.Minty.job.dto.JobFormDto;
 import com.Reboot.Minty.job.dto.JobSearchDto;
 import com.Reboot.Minty.job.entity.Job;
 import com.Reboot.Minty.job.entity.JobImage;
+
 import com.Reboot.Minty.job.repository.JobCustomRepository;
 import com.Reboot.Minty.job.repository.JobImageRepository;
 import com.Reboot.Minty.job.repository.JobRepository;
@@ -51,7 +53,7 @@ public class JobService {
         return jobs;
     }
 
-    public Page<Job> getJobPage(JobSearchDto jobSearchDto, Pageable pageable){
+    public Page<JobDto> getJobPage(JobSearchDto jobSearchDto, Pageable pageable){
         return jobCustomRepository.findJobsBySearchDto(jobSearchDto, pageable);
     }
 
@@ -61,13 +63,13 @@ public class JobService {
     private String bucketName;
 
 
-    public Long save(Long userId, JobDto jobDto, List<MultipartFile> mf){
+    public Long save(Long userId, JobFormDto jobFormDto, List<MultipartFile> mf){
         String uuid = UUID.randomUUID().toString();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AccessDeniedException("로그인 된 유저만 가능합니다."));
 
 
-        Job job = jobDto.toEntity(jobDto);
+        Job job = jobFormDto.toEntity(jobFormDto);
         job.setThumbnail(uuid);
         MultipartFile firstFile = mf.get(0);
         Job savedJob = jobRepository.save(job);

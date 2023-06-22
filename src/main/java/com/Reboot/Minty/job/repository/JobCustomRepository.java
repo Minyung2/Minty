@@ -1,16 +1,20 @@
 package com.Reboot.Minty.job.repository;
 
+import com.Reboot.Minty.job.dto.JobDto;
 import com.Reboot.Minty.job.dto.JobSearchDto;
+import com.Reboot.Minty.job.dto.QJobDto;
 import com.Reboot.Minty.job.entity.Job;
 import com.Reboot.Minty.job.entity.QJob;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Wildcard;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.thymeleaf.util.StringUtils;
 
 import java.util.List;
 
@@ -22,44 +26,27 @@ public class JobCustomRepository  {
         this.queryFactory = new JPAQueryFactory(entityManager);
     }
 
-    public Page<Job> findJobsBySearchDto(JobSearchDto jobSearchDto, Pageable pageable) {
-        QJob qJob = QJob.job;
-        BooleanExpression searchPredicate = createSearchPredicate(jobSearchDto);
-
-        long total = queryFactory.selectFrom(qJob)
-                .where(searchPredicate)
-                .fetchCount();
-
-        List<Job> jobs = queryFactory.selectFrom(qJob)
-                .where(searchPredicate)
-                .orderBy(qJob.createdDate.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        return new PageImpl<>(jobs, pageable, total);
+    private BooleanExpression searchByLike(String searchBy, String searchQuery) {
+        if (StringUtils.equals("title", searchBy)) {
+            return QJob.job.title.like("%"+searchQuery+"%");
+        }else if(StringUtils.equals("jobLocation", searchBy)){
+            return QJob.job.jobLocation.like("%"+searchQuery+"%");
+        }else if(StringUtils.equals("payTotal", searchBy)){
+            return QJob.job.payTotal.like("%"+searchQuery+"%");
+        }
+        return null;
     }
 
-
-    private BooleanExpression createSearchPredicate(JobSearchDto jobSearchDto) {
+    public Page<JobDto> findJobsBySearchDto(JobSearchDto jobSearchDto, Pageable pageable) {
         QJob qJob = QJob.job;
-        BooleanBuilder predicate = new BooleanBuilder();
+        List<JobDto> jobs = queryFactory.select(new QJobDto(qJob.id,qJob.title,
+                qJob.createdDate,qJob.jobLocation,qJob.payTotal,qJob.thumbnail))
+                .from(qJob).where(searchByLike(jobSearchDto.getSearchBy(),jobSearchDto.getSearchQuery())).orderBy(qJob.createdDate.desc())
+                .offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
 
-        if (jobSearchDto.getSearchBy() != null && !jobSearchDto.getSearchBy().isEmpty()) {
-            String searchQuery = jobSearchDto.getSearchQuery();
+        long total =queryFactory.select(Wildcard.count).from(qJob).where(searchByLike(jobSearchDto.getSearchBy(),jobSearchDto.getSearchQuery())).fetchOne();
 
-            if (searchQuery != null && !searchQuery.isEmpty()) { // Add this line
-                if (jobSearchDto.getSearchBy().equals("content")) {
-                    predicate.and(qJob.content.containsIgnoreCase(searchQuery));
-                } else if (jobSearchDto.getSearchBy().equals("title")) {
-                    predicate.and(qJob.title.containsIgnoreCase(searchQuery));
-                } else if (jobSearchDto.getSearchBy().equals("jobLocation")) {
-                    predicate.and(qJob.jobLocation.containsIgnoreCase(searchQuery));
-                }
-            }
-        }
-
-        return (BooleanExpression) predicate.getValue();
+        return new PageImpl<>(jobs,pageable,total);
     }
 
 }

@@ -40,7 +40,8 @@ function App() {
                     <Route path="/boardDetail/:id" element={<BoardDetail csrfToken={csrfToken} />} />
                     <Route path="/jobList" element={<JobList />} />
                     <Route path="/jobList/:page" element={<JobList />} />
-                    <Route path="/jobList/searchQuery/:page" element={<JobList />} />
+                    <Route path="/jobList/searchQuery/:searchBy/:searchQuery" element={<JobList />} />
+                    <Route path="/jobList/searchQuery/:searchBy/:searchQuery/:page" element={<JobList />} />
                 </Routes>
             </div>
         </React.Fragment>

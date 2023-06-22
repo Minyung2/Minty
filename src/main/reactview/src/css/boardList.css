@@ -6,7 +6,7 @@
 }
 
 .sell-board {
-    width: 19%; /* Adjust the width of the sell board */
+    width: 19%;
     box-sizing: border-box;
     padding: 5px;
     border: 1px solid gray;
