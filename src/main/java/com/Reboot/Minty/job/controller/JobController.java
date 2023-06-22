@@ -1,6 +1,7 @@
 package com.Reboot.Minty.job.controller;
 
 import com.Reboot.Minty.job.dto.JobDto;
+import com.Reboot.Minty.job.dto.JobSearchDto;
 import com.Reboot.Minty.job.entity.Job;
 import com.Reboot.Minty.job.service.JobService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,24 +33,23 @@ public class JobController {
     @GetMapping("/jobList/**")
     public String jobList(){return "../static/index";}
 
-    @GetMapping(value={"/api/jobList/","/api/jobList/{page}", "/api/jobList/searchText/{searchText}"})
+    @GetMapping(value = { "/api/jobList/","/api/jobList/{page}", "/api/jobList/searchQuery/{searchQuery}/{page}" })
     @ResponseBody
     public Map<String, Object> getJobList(
-            @PathVariable(value = "page", required = false) Optional<Integer> page,
-            @PathVariable("searchText") Optional<String> searchText) {
-        Map<String,Object> response = new HashMap<>();
-        Pageable pageable = PageRequest.of(page.isPresent() ? page.get() - 1 : 0, 10, Sort.by("createdDate").descending());
-        Page<Job> jobPage;
-        List<Job> jobList;
-        if(!searchText.isPresent()){
-            jobPage = jobService.getAll(pageable);
-        }else{
-            jobPage = jobService.getAllBySearchText(searchText,pageable);
-        }
-        jobList = jobPage.getContent();
-        response.put("jobList", jobList);
+            JobSearchDto jobSearchDto,
+            @PathVariable(value = "searchQuery", required = false) Optional<String> searchQuery,
+            @PathVariable(value = "page", required = false) Optional<Integer> page
+    ) {
+        jobSearchDto.setSearchBy("content"); // or other field
+        jobSearchDto.setSearchQuery(searchQuery.orElse(null));
+        Pageable pageable = PageRequest.of(page.orElse(0), 10, Sort.by(Sort.Direction.DESC, "createdDate"));
+        Page<Job> jobPage = jobService.getJobPage(jobSearchDto, pageable);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("jobPage", jobPage);
         response.put("totalPages", jobPage.getTotalPages());
-        response.put("page", jobPage.getNumber());
+        response.put("page", jobPage.getNumber() + 1); // Add 1 to match the frontend page numbering
+
         return response;
     }
 

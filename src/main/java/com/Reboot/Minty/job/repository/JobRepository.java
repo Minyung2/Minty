@@ -1,5 +1,6 @@
 package com.Reboot.Minty.job.repository;
 
+import com.Reboot.Minty.job.dto.JobSearchDto;
 import com.Reboot.Minty.job.entity.Job;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

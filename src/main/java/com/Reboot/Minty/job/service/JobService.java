@@ -2,8 +2,10 @@ package com.Reboot.Minty.job.service;
 
 import com.Reboot.Minty.config.ResizeFile;
 import com.Reboot.Minty.job.dto.JobDto;
+import com.Reboot.Minty.job.dto.JobSearchDto;
 import com.Reboot.Minty.job.entity.Job;
 import com.Reboot.Minty.job.entity.JobImage;
+import com.Reboot.Minty.job.repository.JobCustomRepository;
 import com.Reboot.Minty.job.repository.JobImageRepository;
 import com.Reboot.Minty.job.repository.JobRepository;
 import com.Reboot.Minty.member.entity.User;
@@ -29,11 +31,14 @@ public class JobService {
     private final UserRepository userRepository;
     private final Storage storage;
 
-    public JobService(JobRepository jobRepository, JobImageRepository jobImageRepository, UserRepository userRepository, Storage storage){
+    private final JobCustomRepository jobCustomRepository;
+
+    public JobService(JobRepository jobRepository, JobImageRepository jobImageRepository, UserRepository userRepository, Storage storage, JobCustomRepository jobCustomRepository){
         this.jobRepository=jobRepository;
         this.jobImageRepository = jobImageRepository;
         this.userRepository = userRepository;
         this.storage = storage;
+        this.jobCustomRepository = jobCustomRepository;
     }
 
     public Page<Job> getAll(Pageable pageable){
@@ -45,6 +50,12 @@ public class JobService {
         Page<Job> jobs = jobRepository.findAllByTitleContaining(searchText, pageable);
         return jobs;
     }
+
+    public Page<Job> getJobPage(JobSearchDto jobSearchDto, Pageable pageable){
+        return jobCustomRepository.findJobsBySearchDto(jobSearchDto, pageable);
+    }
+
+
 
     @Value("${spring.cloud.gcp.storage.credentials.bucket}")
     private String bucketName;
