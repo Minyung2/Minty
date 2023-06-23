@@ -41,8 +41,6 @@ public class JobController {
     ) {
         Pageable pageable = PageRequest.of(page.isPresent()?page.get() - 1 : 0,10);
         Page<JobDto> jobPage = jobService.getJobPage(jobSearchDto, pageable);
-        System.out.println(jobPage.getTotalPages());
-        System.out.println(jobPage.getNumber());
         Map<String, Object> response = new HashMap<>();
         response.put("jobPage", jobPage);
         response.put("JobSearchDto",jobSearchDto);

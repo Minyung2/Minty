@@ -46,7 +46,8 @@ const fetchData = () => {
       if (error.response && error.response.data && error.response.data.error) {
         alert(error.response.data.error);
       } else {
-        alert("알 수 없는 오류");
+        alert("error");
+        console.log(error);
       }
       window.history.back(); // 이전 페이지로 이동
     });

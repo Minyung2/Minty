@@ -37,8 +37,10 @@ public class JobCustomRepository {
 
     public Page<JobDto> findJobsBySearchDto(JobSearchDto jobSearchDto, Pageable pageable) {
         QJob qJob = QJob.job;
-        List<JobDto> jobs = queryFactory.select(new QJobDto(qJob.id, qJob.title,
-                        qJob.createdDate, qJob.jobLocation, qJob.payTotal, qJob.thumbnail))
+        List<JobDto> jobs = queryFactory.select(new QJobDto(
+                        qJob.id, qJob.title,
+                        qJob.createdDate, qJob.jobLocation,
+                        qJob.payTotal, qJob.thumbnail))
                 .from(qJob).where(searchByLike(jobSearchDto.getSearchBy(), jobSearchDto.getSearchQuery())).orderBy(qJob.createdDate.desc())
                 .offset(pageable.getOffset()).limit(pageable.getPageSize()).fetch();
 

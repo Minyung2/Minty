@@ -68,7 +68,6 @@ public class User {
         user.setEmail(joinDto.getEmail());
         user.setName(joinDto.getName());
         user.setPassword(passwordEncoder.encode(joinDto.getPassword()));
-        user.setNickName(joinDto.getNickName());
         user.setAgeRange(joinDto.getAgeRange());
         user.setMobile(joinDto.getMobile());
         user.setGender(joinDto.getGender());

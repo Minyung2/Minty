@@ -4,6 +4,8 @@ import com.Reboot.Minty.categories.CategoryService;
 import com.Reboot.Minty.categories.entity.SubCategory;
 import com.Reboot.Minty.categories.entity.TopCategory;
 import com.Reboot.Minty.tradeBoard.dto.TradeBoardDto;
+import com.Reboot.Minty.tradeBoard.dto.TradeBoardFormDto;
+import com.Reboot.Minty.tradeBoard.dto.TradeBoardSearchDto;
 import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
 import com.Reboot.Minty.tradeBoard.entity.TradeBoardImg;
 import com.Reboot.Minty.tradeBoard.repository.TradeBoardRepository;
@@ -11,7 +13,6 @@ import com.Reboot.Minty.tradeBoard.service.TradeBoardService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -24,8 +25,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -57,33 +56,24 @@ public class TradeBoardController {
     }
 
 
-    @GetMapping(value = {"/api/boardList/{boardType}/category/{category}/{page}", "/api/boardList/{boardType}/{page}", "/api/boardList/{boardType}"})
+    @GetMapping(value = {"/api/boardList/{page}", "/api/boardList/"})
     @ResponseBody
     public Map<String, Object> getBoardList(
-            @PathVariable("boardType") int boardType,
-            @PathVariable(value = "category", required = false) Optional<SubCategory> category,
+            TradeBoardSearchDto tradeBoardSearchDto,
             @PathVariable(value = "page", required = false) Optional<Integer> page
     ) {
         List<TopCategory> topCategories = categoryService.getTopCategoryList();
         List<SubCategory> subCategories = categoryService.getSubCategoryList();
-        List<TradeBoard> tradeBoards;
-        Pageable pageable = PageRequest.of(page.isPresent() ? page.get() - 1 : 0, 10, Sort.by("createdDate").descending());
-        Page<TradeBoard> sellBoardPage;
+        Pageable pageable = PageRequest.of(page.isPresent()?page.get() : 0,10);
+        Page<TradeBoardDto> tradeBoards = tradeBoardService.getTradeBoard(tradeBoardSearchDto, pageable);
 
-        if (!category.isPresent()) {
-            sellBoardPage = tradeBoardService.getAllByBoardType(boardType, pageable);
-        } else {
-            sellBoardPage = tradeBoardService.getBoardsByBoardTypeAndSubCategory(boardType, category, pageable);
-        }
-
-        tradeBoards = sellBoardPage.getContent();
         Map<String, Object> response = new HashMap<>();
         response.put("sub", subCategories);
         response.put("top", topCategories);
-        response.put("sellBoards", tradeBoards);
-        response.put("totalPages", sellBoardPage.getTotalPages());
-        response.put("page", sellBoardPage.getNumber());
-
+        response.put("tradeBoards", tradeBoards);
+        response.put("tradeBoardSearchDto",tradeBoardSearchDto);
+        response.put("totalPages", tradeBoards.getTotalPages());
+        response.put("page", tradeBoards.getNumber());
         return response;
     }
 
@@ -107,12 +97,17 @@ public class TradeBoardController {
             response.put("nickName", nickName);
             response.put("imageList", imageList);
             return ResponseEntity.ok(response); // 200 OK 응답 반환
-        } catch (AccessDeniedException e) {
+        }
+        catch (AccessDeniedException e) {
             response.put("error", "해당 게시글의 읽기 권한이 없습니다.");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response); // 403 Forbidden 오류 반환
-        } catch (EntityNotFoundException e) {
-            response.put("error", "TradeBoard not found");
+        }
+        catch (EntityNotFoundException e) {
+            response.put("error", "존재 하지 않는 글입니다.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404 Not Found 오류 반환
+        } catch (Exception e){
+            response.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
 
@@ -140,7 +135,7 @@ public class TradeBoardController {
 
     @PostMapping("/tradeWrite")
     @ResponseBody
-    public ResponseEntity<?> tradeSave(@Valid TradeBoardDto tradeBoardDto,
+    public ResponseEntity<?> tradeSave(@Valid TradeBoardFormDto tradeBoardFormDto,
                                        BindingResult bindingResult,
                                        @RequestPart("fileUpload") List<MultipartFile> mf,
                                        HttpServletRequest request) {
@@ -149,7 +144,7 @@ public class TradeBoardController {
             errors = bindingResult.getFieldErrors().stream()
                     .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
         }
-        if (tradeBoardDto.getSubCategory() == null) {
+        if (tradeBoardFormDto.getSubCategory() == null) {
             errors.put("subCategory", "서브 카테고리를 선택해주세요.");
         }
 
@@ -172,7 +167,7 @@ public class TradeBoardController {
             Long boardId;
             Long userId = (Long) session.getAttribute("userId");
             try {
-                boardId = tradeBoardService.saveBoard(userId, tradeBoardDto, mf);
+                boardId = tradeBoardService.saveBoard(userId, tradeBoardFormDto, mf);
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
             }
@@ -183,7 +178,7 @@ public class TradeBoardController {
     @PostMapping("/tradeUpdate/{boardId}")
     @ResponseBody
     public ResponseEntity<?> tradeUpdate(@PathVariable("boardId") Long boardId,
-                                         @Valid TradeBoardDto tradeBoardDto, BindingResult bindingResult,
+                                         @Valid TradeBoardFormDto tradeBoardFormDto, BindingResult bindingResult,
                                          @RequestPart(value = "fileUpload", required = false) List<MultipartFile> mf,
                                          @RequestParam("imageUrls") String imageUrlsJson,
                                          HttpSession session) throws JsonProcessingException {
@@ -194,7 +189,7 @@ public class TradeBoardController {
             errors = bindingResult.getFieldErrors().stream()
                     .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
         }
-        if (tradeBoardDto.getSubCategory() == null) {
+        if (tradeBoardFormDto.getSubCategory() == null) {
             errors.put("subCategory", "서브 카테고리를 선택해주세요.");
         }
         List<String> filenames = new ArrayList<>();
@@ -216,9 +211,9 @@ public class TradeBoardController {
             try {
                 Long userId = (Long) session.getAttribute("userId");
                 if (mf != null) {
-                    tradeBoardService.updateBoard(userId, boardId, tradeBoardDto, mf, imageUrls);
+                    tradeBoardService.updateBoard(userId, boardId, tradeBoardFormDto, mf, imageUrls);
                 } else {
-                    tradeBoardService.updateWithoutMultiFile(userId, boardId, tradeBoardDto, imageUrls);
+                    tradeBoardService.updateWithoutMultiFile(userId, boardId, tradeBoardFormDto, imageUrls);
                 }
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

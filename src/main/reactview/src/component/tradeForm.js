@@ -6,7 +6,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { Draggable, SortablePhoto } from './sortablePhoto';
 import '../css/tradeForm.css';
 
-function TradeForm({ selectedTopCateId, selectedSubCateId, boardType, csrfToken, tradeBoard, imageList }) {
+function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoard, imageList }) {
     const selectFile = useRef(null);
     const [previewImages, setPreviewImages] = useState([]);
     const [error, setError] = useState(null);
@@ -105,7 +105,6 @@ function TradeForm({ selectedTopCateId, selectedSubCateId, boardType, csrfToken,
         formData.append("content", content);
         formData.append('topCategory', selectedTopCateId);
         formData.append('subCategory', selectedSubCateId);
-        formData.append('boardType', boardType);
 
         previewImages.forEach((image, index) => {
             formData.append("fileUpload", image.file);
@@ -154,7 +153,6 @@ function TradeForm({ selectedTopCateId, selectedSubCateId, boardType, csrfToken,
                 <Form onSubmit={handleSubmit} encType="multipart/form-data">
                     <Form.Control type="hidden" name="topCategory" value={selectedTopCateId} />
                     <Form.Control type="hidden" name="subCategory" value={selectedSubCateId} />
-                    <Form.Control type="hidden" name="boardType" value={boardType} />
 
                     <div className="photo-div">
                         <Form.Group>

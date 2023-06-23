@@ -11,8 +11,8 @@ function BoardList() {
   const [topCategories, setTopCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [sellBoards, setSellBoards] = useState([]);
-  const { boardType, id: categoryId, page: pageParam } = useParams();
+  const [tradeBoards, setTradeBoards] = useState([]);
+  const { id: categoryId, page: pageParam } = useParams();
 
   const [currentPage, setCurrentPage] = useState(pageParam ? Number(pageParam) : 1);
   const [totalPages, setTotalPages] = useState(0);
@@ -21,7 +21,6 @@ function BoardList() {
 
   const setCurrentPageAndNavigate = (pageNumber) => {
     setCurrentPage(pageNumber);
-    navigate(`/boardList/${boardType ? `${boardType}/` : ''}${categoryId ? `category/${categoryId}/` : ''}${pageNumber}`);
   };
 
   useEffect(() => {
@@ -31,9 +30,7 @@ function BoardList() {
   const fetchData = async () => {
     let endpoint;
     if (categoryId) {
-      endpoint = `/api/boardList/${boardType ? `${boardType}/` : ''}category/${categoryId}/${currentPage}`;
-    } else if (boardType) {
-      endpoint = `/api/boardList/${boardType}/${currentPage}`;
+
     } else {
       endpoint = `/api/boardList/${currentPage}`;
     }
@@ -42,11 +39,11 @@ function BoardList() {
       .then((response) => {
         let top = [...response.data.top];
         let sub = [...response.data.sub];
-        let boards = [...response.data.sellBoards];
+        let boards = [...response.data.tradeBoards];
         let total = response.data.totalPages;
         setTopCategories(top);
         setSubCategories(sub);
-        setSellBoards(boards);
+        setTradeBoards(boards);
         setTotalPages(total);
       })
       .catch((error) => {
@@ -64,7 +61,7 @@ function BoardList() {
         <Col sm={1}>
           <Nav className="flex-column">
             <div>
-              <a href={`/boardList/${boardType}`} className="category-link nav-link">
+              <a href={`/boardList`} className="category-link nav-link">
                 전체
               </a>
             </div>
@@ -89,10 +86,8 @@ function BoardList() {
                 .map((subcategory) => (
                   <Nav.Item key={subcategory.id}>
                     <Link
-                      to={`/boardList/${boardType}/category/${subcategory.id}/${currentPage}`}
                       onClick={() => {
                         setSelectedSubCategory(subcategory.id);
-                        navigate(`/boardList/${boardType}/category/${subcategory.id}/${currentPage}`);
                         setCurrentPage(1);
                       }}
                       className={`sub-category-link ${selectedSubCategory === subcategory.id ? 'active' : ''}`}
@@ -105,9 +100,9 @@ function BoardList() {
           )}
         </Col>
         <Col sm={9} className={selectedCategory ? 'pushed-content' : ''}>
-          {sellBoards.length > 0 ? (
+          {tradeBoards.length > 0 ? (
             <div className="sell-boards-container">
-              {sellBoards.map((board) => {
+              {tradeBoards.map((board) => {
                 let timeAgo = formatDistanceToNow(parseISO(board.createdDate), { addSuffix: true, locale: ko });
 
                 return (
