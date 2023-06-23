@@ -40,8 +40,12 @@ public class UserService implements UserDetailsService {
 
     // 회원 가입 DB 저장
     public User saveUser(User user) {
-        validateDuplicateMember(user);
-        validateDuplicateNickName(user);
+        ManagerStatistics managerStatistics = managerStatisticsRepository.findByVisitDate(LocalDate.now());
+        if (managerStatistics != null) {
+            int registerCount = managerStatistics.getRegister() + 1;
+            managerStatistics.setRegister(registerCount);
+            managerStatisticsRepository.save(managerStatistics);
+        }
         return userRepository.save(user);
     }
 
@@ -199,4 +203,7 @@ public class UserService implements UserDetailsService {
         return userRepository.findById(userId).orElse(null);
     }
 
+    public Page<User> searchUsersByQuery(String query, Pageable pageable) {
+        return userRepository.findByNameContainingIgnoreCaseOrNickNameContainingIgnoreCase(query, query, pageable);
+    }
 }

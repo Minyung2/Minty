@@ -140,6 +140,7 @@ public class UserController {
         return "map/map";
     }
 
+
     @PostMapping("/saveLocation")
     public String saveLocation(@ModelAttribute JoinLocationDto joinLocationDto, HttpSession session, CsrfToken csrfToken) {
         System.out.println("saveLocation method()");

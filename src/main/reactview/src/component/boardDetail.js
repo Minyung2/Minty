@@ -22,6 +22,11 @@ const navigate = useNavigate();
      navigate(`/writeForm/${id}`, { state: { tradeBoard, imageList } });
    };
 
+   const handleDeleteClick = () => {
+
+   }
+
+
 const fetchData = () => {
   axios
     .get(`/api/boardDetail/${id}`)
@@ -124,11 +129,11 @@ const fetchData = () => {
             <span>{timeAgo}</span>
           </Col>
           <Col className="button-groups">
-            <Button variant="primary">찜하기</Button>
-            <Button variant="secondary">채팅</Button>
-            <Button variant="success" onClick={purchasingReq}>
+            {!isAuthor && <Button variant="primary">찜하기</Button>}
+            {!isAuthor &&<Button variant="secondary">채팅</Button>}
+            {!isAuthor &&<Button variant="success" onClick={purchasingReq}>
               구매 신청
-            </Button>
+            </Button>}
           </Col>
         </Col>
       </Row>
@@ -142,8 +147,12 @@ const fetchData = () => {
         <Col md={12}></Col>
        <Col md={3}>
        <div>
-       {isAuthor && <Button variant="primary" onClick={handleEditClick} style={{gap:3}}>수정</Button>}
-       {isAuthor && <Button variant="primary">삭제</Button>}
+       <Row className="justify-content-end">
+        <Col>
+            {isAuthor && <Button variant="primary" onClick={handleEditClick} style={{gap:"3"}}>수정</Button>}
+            {isAuthor && <Button variant="primary" onClick={handleDeleteClick}>삭제</Button>}
+        </Col>
+       </Row>
        </div>
        </Col>
       </Row>

@@ -20,6 +20,9 @@ import java.util.List;
 public interface TradeRepository extends JpaRepository<Trade, Long> {
     Trade findByBoardId(Long boardId);
 
+    List<Trade> findByBuyerId_Id(Long userId);
+    List<Trade> findBySellerId_Id(Long userId);
+
     Page<Trade> findAllByBuyerIdOrSellerId(User buyer, User seller, Pageable pageable);
 
     Trade findByBoardIdAndBuyerIdAndSellerId(TradeBoard tradeBoard, User buyer,  User seller);
@@ -38,6 +41,15 @@ public interface TradeRepository extends JpaRepository<Trade, Long> {
     @Modifying
     @Query("UPDATE Trade t SET t.tradeDate = :tradeDate, t.tradeTime = :tradeTime WHERE t.id = :tradeId")
     void updateScheduleInfo(@Param("tradeId") Long tradeId, @Param("tradeDate") LocalDate tradeDate, @Param("tradeTime") LocalTime tradeTime);
+
+    @Modifying
+    @Query("UPDATE Trade t SET t.sellerSchedule = :schedule WHERE t.id = :tradeId")
+    void updateSellerSchedule(@Param("tradeId") Long tradeId, @Param("schedule") String schedule);
+
+    @Modifying
+    @Query("UPDATE Trade t SET t.buyerSchedule = :schedule WHERE t.id = :tradeId")
+    void updateBuyerSchedule(@Param("tradeId") Long tradeId, @Param("schedule") String schedule);
+
 
 
 }

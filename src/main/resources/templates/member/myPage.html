@@ -10,7 +10,7 @@
         justify-content: space-between;
         align-items: flex-start;
         padding: 10px;
-        border-bottom: 2px solid #000;
+        border-bottom: 2px solid #ccc;
         bottom:0;
     }
 
@@ -57,7 +57,7 @@
         margin-right: 10px;
         width: 20%;
         min-width: 20%;
-        border: 2px solid #000;
+
         margin-bottom: 10px;
         height: 300px;
     }
@@ -75,11 +75,13 @@
       border: 2px solid #000;
       margin-bottom: 10px;
       height: 300px;
+      border-radius:16px;
     }
 
     .deco {
       flex-grow: 1;
-      border: 2px solid #000;
+      border: 3px double #b8a8a8c2;
+      border-radius: 16px;
       height: 300px;
     }
 .tab-button {
@@ -129,7 +131,7 @@
     /* 보드 영역 스타일 */
     .board-area {
         padding: 10px;
-        border: 2px solid #000;
+        border: 2px solid #ccc;
         height: 3000px;
     }
     .pay{
@@ -171,14 +173,13 @@
     }
 
     .charge {
-        width: 180px;
-        height:66px;
+          width: 172px;
+        height: 63px;
         display: flex;
         justify-content: center;
         align-items: center;
         cursor: pointer;
-        background-color: white;
-        border:2px solid black;
+        margin-left: 4px;
     }
     .charge img {
         vertical-align: middle;
@@ -292,6 +293,37 @@
     width: 350px;
     }
 
+
+
+      .profile {
+        height: 100%;
+        position: relative;
+        transition: all 1s;
+        transform-style: preserve-3d;
+      }
+
+      .profile:hover {
+        transform: rotateY(180deg);
+      }
+
+      .front {
+        width: 100%;
+        position: absolute;
+        z-index : 1;
+        backface-visibility: hidden;
+        text-align:center;
+        box-shadow: 0px 0px 10px gray;
+    }
+
+      .back {
+        width: 100%;
+        position: absolute;
+        transform: rotateY(180deg);
+        height: 299px;
+        box-shadow: 0px 0px 10px gray;
+        text-align: center;
+      }
+
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script th:inline="javascript">
@@ -347,30 +379,36 @@
 <div layout:fragment="content">
 
     <div class="container">
-
         <div class="profile-area">
             <!-- 프로필 영역 내용 -->
             <div class="profile">
-                <img src="/image/manager.PNG" alt="프로필 사진">
-                <div class="info">
-                    <div class="ratings">
-                        <img src="/image/myPage/score.PNG" alt="평점 이미지">
-                        <div class="score">평점칸</div>
+                <div class="front">
+                    <img src="/image/manager.PNG" alt="프로필 사진">
+                    <div class="info">
+                        <div class="ratings">
+                            <img src="/image/myPage/score.PNG" alt="평점 이미지">
+                            <div class="score" th:text="${averageRating}"></div>
+                        </div>
+                        <div class="information">
+                            <div class="nickname">Lv. <span th:text="${user.level}"></span> <span th:text="${user.nickName}"></span></div>
+                            <div class="email"><span th:text="${user.email}"></span></div>
+                        </div>
                     </div>
-                    <div class="information">
-                        <div class="nickname">Lv. <span th:text="${user.level}"></span> <span th:text="${user.nickName}"></span></div>
-                        <div class="email"><span th:text="${user.email}"></span></div>
-                    </div>
+                    <img class="user_exp" th:if="${user.exp != null}">
+                    <th:block th:switch="${user.exp}">
+                        <img th:case="0" th:src="@{/image/mypage/exp0.png}" alt="0">
+                        <img th:case="10" th:src="@{/image/mypage/exp10.png}" alt="10">
+                        <img th:case="20" th:src="@{/image/mypage/exp20.png}" alt="20">
+                        <img th:case="30" th:src="@{/image/mypage/exp30.png}" alt="30">
+                        <img th:case="*" th:src="@{/image/mypage/exp40.PNG}" alt="40">
+                    </th:block>
+                    </img>
                 </div>
-                <img class="user_exp" th:if="${user.exp != null}">
-                <th:block th:switch="${user.exp}">
-                    <img th:case="0" th:src="@{/image/mypage/exp0.png}" alt="0">
-                    <img th:case="10" th:src="@{/image/mypage/exp10.png}" alt="10">
-                    <img th:case="20" th:src="@{/image/mypage/exp20.png}" alt="20">
-                    <img th:case="30" th:src="@{/image/mypage/exp30.png}" alt="30">
-                    <img th:case="*" th:src="@{/image/mypage/exp40.PNG}" alt="40">
-                </th:block>
-                </img>
+                <div class="back">
+                    <h2>자기소개하세요</h2>
+                    <br>
+                    <p>직거래살인마입니다</p>
+                </div>
             </div>
 
             <div class="moneyView">
@@ -396,7 +434,7 @@
                             <img src="/image/myPage/charge_in.png" width="30px;" height="30px;" alt="충전아이콘">
                             <span>충전하기</span>
                         </div>
-                        <div class="charge" onclick="openNewWindow2()">
+                        <div class="charge" style="border-top:1px solid #ccc; border-bottom:1px solid #ccc;" onclick="openNewWindow2()">
                             <img src="/image/myPage/charge_out.png" width="30px;" height="30px;" alt="출금아이콘">
                             <span>출금하기</span>
                         </div>
@@ -418,6 +456,8 @@
                 <li class="tab-button p select">판매내역</li>
                 <li class="tab-button i">급해요</li>
                 <li class="tab-button g">후기</li>
+                <li class="tab-button t">거래목록</li>
+                <li class="tab-button s">일정목록</li>
             </ul>
         </div>
 
@@ -431,6 +471,14 @@
 
             <div class="tab-content i">
                 <p>급해요 보드</p>
+            </div>
+
+            <div class="tab-content t">
+                <p>거래목록 보드</p>
+            </div>
+
+            <div class="tab-content s">
+                <p>일정목록 보드</p>
             </div>
 
             <div class="tab-content g">

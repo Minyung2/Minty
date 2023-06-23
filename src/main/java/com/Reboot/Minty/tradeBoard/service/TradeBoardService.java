@@ -230,7 +230,7 @@ public class TradeBoardService {
         // 순서 바뀌었을 때
         if(firstFile!=tradeBoard.getThumbnail()){
             tradeBoard.setThumbnail(firstFile);
-        // 아닐때
+            // 아닐때
         }else{
             tradeBoard.setThumbnail(imageUrls.get(0));
         }
