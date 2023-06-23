@@ -75,7 +75,7 @@ function JobList() {
     <Container fluid>
       <Row>
         <form onSubmit={handleSearch}>
-          <Row className="justify-content-right">
+          <Row className="justify-content-end">
             <Col md={2}>
               <Form.Select name="searchBy">
                 <option name="searchBy" value="title">제목</option>
