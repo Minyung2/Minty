@@ -56,8 +56,6 @@ public class TradeBoard {
     private UserLocation userLocation;
     @Enumerated(EnumType.STRING)
     private TradeStatus status;
-    @OneToMany(mappedBy = "tradeBoard", cascade = CascadeType.ALL)
-    List<TradeBoardImg> imgList = new ArrayList<>();
 
 
 }
