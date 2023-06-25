@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Pagination from './pagination';
-import { Container, Row, Col, Nav } from 'react-bootstrap';
+import { Button ,Container, Row, Col, Nav } from 'react-bootstrap';
 import '../css/boardList.css';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { BiSearch } from 'react-icons/bi';
+
 
 function BoardList() {
   const [topCategories, setTopCategories] = useState([]);
@@ -13,26 +15,42 @@ function BoardList() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [tradeBoards, setTradeBoards] = useState([]);
   const { id: categoryId, page: pageParam } = useParams();
-
+const [searchQuery, setSearchQuery] = useState('');
+ const [searchQueryInput, setSearchQueryInput] = useState('');
   const [currentPage, setCurrentPage] = useState(pageParam ? Number(pageParam) : 1);
   const [totalPages, setTotalPages] = useState(0);
   const navigate = useNavigate();
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
 
+const handleSearch = (e) => {
+     e.preventDefault();
+
+    setCurrentPage(1);
+    const searchQuery = e.target.elements.searchQuery.value;
+    setSearchQuery(searchQuery);
+    const url = searchQuery
+          ? `/api/jobList/searchQuery/${searchQuery}/${currentPage}`
+          : `/api/jobList/${currentPage}`;
+    fetchData();
+  };
+
   const setCurrentPageAndNavigate = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [categoryId, currentPage, selectedSubCategory]);
+   useEffect(() => {
+      fetchData();
+    }, [categoryId, currentPage, selectedSubCategory, searchQuery]);
 
   const fetchData = async () => {
     let endpoint;
     if (selectedCategory) {
-        endpoint = `/api/boardList/category/${selectedSubCategory}/${currentPage}`;
+      endpoint = `/api/boardList/category/${selectedSubCategory}/${currentPage}`;
     } else {
-        endpoint = `/api/boardList/${currentPage}`;
+      endpoint = `/api/boardList/${currentPage}`;
+    }
+    if (searchQuery) {
+        endpoint += `/searchQuery/${searchQuery}`;
     }
     await axios
       .get(endpoint)
@@ -57,6 +75,16 @@ function BoardList() {
 
   return (
     <Container fluid>
+    <form onSubmit={handleSearch}>
+       <Row className="d-flex justify-content-center">
+            <Col sm={2}>
+                <input type="text" name="searchQuery" value={searchQueryInput} onChange={(e) => setSearchQueryInput(e.target.value)} />
+              <button type="submit">
+                <BiSearch />
+              </button>
+            </Col>
+          </Row>
+                  </form>
       <Row>
         <Col sm={1}>
           <Nav className="flex-column">

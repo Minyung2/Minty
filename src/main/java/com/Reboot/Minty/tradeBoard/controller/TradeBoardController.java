@@ -51,20 +51,35 @@ public class TradeBoardController {
     }
 
 
-    @GetMapping(value = {"/api/boardList/{page}", "/api/boardList/", "/api/boardList/category/{subCategoryId}/{page}"})
+    @GetMapping(value = {
+            "/api/boardList/{page}",
+            "/api/boardList/",
+            "/api/boardList/category/{subCategoryId}/{page}",
+            "/api/boardList/searchQuery/{searchQuery}/{page}",
+            "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/{page}"
+    })
     @ResponseBody
     public Map<String, Object> getBoardList(
             TradeBoardSearchDto tradeBoardSearchDto,
-            @PathVariable(value = "page", required = false) Optional<Integer> page
+            @PathVariable(value = "page", required = false) Optional<Integer> page,
+            @PathVariable(value = "subCategoryId", required = false) Optional<Long> subCategoryId,
+            @PathVariable(value = "searchQuery", required = false) Optional<String> searchQuery
+
     ) {
+        if (subCategoryId.isPresent()) {
+            tradeBoardSearchDto.setSubCategoryId(subCategoryId.get());
+        }
+        if (searchQuery.isPresent()) {
+            tradeBoardSearchDto.setSearchQuery(searchQuery.get());
+        }
         List<TopCategoryDto> topCategories = categoryService.getTopCategoryList();
         List<SubCategoryDto> subCategories = categoryService.getSubCategoryList();
-        Pageable pageable = PageRequest.of(page.isPresent()?page.get() -1 : 0,10);
+        Pageable pageable = PageRequest.of(page.isPresent() ? page.get() - 1 : 0, 10);
         Page<TradeBoardDto> tradeBoards = tradeBoardService.getTradeBoard(tradeBoardSearchDto, pageable);
         Map<String, Object> response = new HashMap<>();
         response.put("sub", subCategories);
         response.put("top", topCategories);
-        response.put("tradeBoards",tradeBoards);
+        response.put("tradeBoards", tradeBoards);
         response.put("totalPages", tradeBoards.getTotalPages());
         response.put("page", tradeBoards.getNumber());
 
@@ -87,7 +102,7 @@ public class TradeBoardController {
             String nickName = tradeBoard.getUser().getNickName();
             HttpSession session = request.getSession();
             boolean isAuthor = tradeBoard.getUser().getEmail().equals(session.getAttribute("userEmail"));
-            System.out.println("isAuthor>>"+isAuthor);
+            System.out.println("isAuthor>>" + isAuthor);
             System.out.println(nickName);
             TradeBoardDetailResponseDto response = new TradeBoardDetailResponseDto();
             response.setAuthor(isAuthor);
@@ -95,18 +110,14 @@ public class TradeBoardController {
             response.setNickName(nickName);
             response.setImageList(imageList);
             return ResponseEntity.ok().body(response);
-        }
-        catch (AccessDeniedException e) {
+        } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
-        }
-        catch (EntityNotFoundException e) {
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
 
 
     @GetMapping("/writeForm/**")
