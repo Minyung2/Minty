@@ -4,12 +4,13 @@ import com.Reboot.Minty.member.entity.User;
 import com.Reboot.Minty.member.service.UserService;
 import com.Reboot.Minty.review.entity.Review;
 import com.Reboot.Minty.review.service.ReviewService;
-import com.Reboot.Minty.trade.entity.Schedule;
 import com.Reboot.Minty.trade.entity.Trade;
 import com.Reboot.Minty.trade.repository.ScheduleRepository;
 import com.Reboot.Minty.trade.service.TradeService;
 import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
+import com.Reboot.Minty.tradeBoard.repository.TradeBoardRepository;
 import com.Reboot.Minty.tradeBoard.service.TradeBoardService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,8 @@ public class TradeController {
     private final TradeService tradeService;
     private final TradeBoardService tradeBoardService;
 
+    private final TradeBoardRepository tradeBoardRepository;
+
     private final UserService userService;
 
     private final ReviewService reviewService;
@@ -34,9 +37,10 @@ public class TradeController {
     private final ScheduleRepository scheduleRepository;
 
     @Autowired
-    public TradeController(TradeService tradeService, TradeBoardService tradeBoardService, UserService userService, ReviewService reviewService, ScheduleRepository scheduleRepository) {
+    public TradeController(TradeService tradeService, TradeBoardService tradeBoardService, TradeBoardRepository tradeBoardRepository, UserService userService, ReviewService reviewService, ScheduleRepository scheduleRepository) {
         this.tradeService = tradeService;
         this.tradeBoardService = tradeBoardService;
+        this.tradeBoardRepository = tradeBoardRepository;
         this.userService = userService;
         this.reviewService = reviewService;
         this.scheduleRepository = scheduleRepository;
@@ -79,8 +83,9 @@ public class TradeController {
 
     @PostMapping("/api/purchasingReq")
     @ResponseBody
-    public ResponseEntity<?> purchasingReq(@RequestBody TradeBoard tradeBoard, HttpSession session) {
+    public ResponseEntity<?> purchasingReq(@RequestBody Long tradeBoardId, HttpSession session) {
         try {
+            TradeBoard tradeBoard = tradeBoardRepository.findById(tradeBoardId).orElseThrow(EntityNotFoundException::new);
             User buyer = userService.getUserInfoById((Long) session.getAttribute("userId"));
             User seller = userService.getUserInfoById(tradeBoard.getUser().getId());
             Trade trade = tradeService.save(tradeBoard, buyer, seller);

@@ -6,11 +6,10 @@ import com.Reboot.Minty.member.entity.UserLocation;
 import com.Reboot.Minty.member.repository.UserLocationRepository;
 import com.Reboot.Minty.member.repository.UserRepository;
 import com.Reboot.Minty.tradeBoard.constant.TradeStatus;
-import com.Reboot.Minty.tradeBoard.dto.TradeBoardDto;
-import com.Reboot.Minty.tradeBoard.dto.TradeBoardFormDto;
-import com.Reboot.Minty.tradeBoard.dto.TradeBoardSearchDto;
+import com.Reboot.Minty.tradeBoard.dto.*;
 import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
 import com.Reboot.Minty.tradeBoard.entity.TradeBoardImg;
+//import com.Reboot.Minty.tradeBoard.repository.TradeBoardCustomRepository;
 import com.Reboot.Minty.tradeBoard.repository.TradeBoardCustomRepository;
 import com.Reboot.Minty.tradeBoard.repository.TradeBoardImgRepository;
 import com.Reboot.Minty.tradeBoard.repository.TradeBoardRepository;
@@ -30,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.*;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 
@@ -67,18 +67,23 @@ public class TradeBoardService {
         return tradeBoardRepository.save(tradeBoard);
     }
 
-    public TradeBoard findById(Long boardId) {
+    public TradeBoardDetailDto findById(Long boardId) {
         TradeBoard tradeBoard = tradeBoardRepository.findById(boardId).orElseThrow(EntityNotFoundException::new);
-//        if(tradeBoard.getStatus().equals(TradeStatus.BANNED)){
-//            throw new AccessDeniedException("해당 글의 접근 권한이 없습니다.");
-//        }else{
-//            return tradeBoard;
-//        }
-        return tradeBoard;
+        TradeBoardDetailDto dto = TradeBoardDetailDto.of(tradeBoard);
+        System.out.println("of TradeBoardDetailDto" + dto.getTopCategory());
+        if(dto.getTradeStatus().equals(TradeStatus.BANNED)){
+            throw new AccessDeniedException("해당 글의 접근 권한이 없습니다.");
+        }else{
+            return dto;
+        }
     }
 
-    public List<TradeBoardImg> getImgList(Long boardId) {
-        return tradeBoardImgRepository.findByTradeBoardId(boardId);
+    public List<TradeBoardImgDto> getImgList(Long boardId) {
+        List<TradeBoardImg> tradeBoardImg = tradeBoardImgRepository.findByTradeBoardId(boardId);
+        List<TradeBoardImgDto> tradeBoardImgDto = tradeBoardImg.stream()
+                .map(TradeBoardImgDto::of)
+                .collect(Collectors.toList());
+        return tradeBoardImgDto;
     }
 
     @Value("${spring.cloud.gcp.storage.credentials.bucket}")

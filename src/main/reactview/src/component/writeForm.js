@@ -22,9 +22,10 @@ function WriteForm(props) {
     const state = location.state;
     useEffect(() => {
         if (location.state) {
+            setTargetCategory("tradeBoard");
             setTradeBoard(location.state.tradeBoard);
-            setSelectedTopCateId(location.state.tradeBoard.topCategory.id);
-            setSelectedSubCateId(location.state.tradeBoard.subCategory.id);
+            setSelectedTopCateId(location.state.tradeBoard.topCategory);
+            setSelectedSubCateId(location.state.tradeBoard.subCategory);
             setImageList(location.state.imageList);
 
         }
@@ -72,7 +73,7 @@ function WriteForm(props) {
         fetchData();
         if (targetCategory === 'tradeBoard') {
             setSubCategory('sell');
-            setSelectedTopCateId(1);
+            setSelectedTopCateId(selectedTopCateId);
         }
         else { setSubCategory('common'); }
     }, [targetCategory], [subCategory]);

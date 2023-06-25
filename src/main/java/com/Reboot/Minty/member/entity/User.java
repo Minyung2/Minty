@@ -3,13 +3,16 @@ package com.Reboot.Minty.member.entity;
 
 import com.Reboot.Minty.member.constant.Role;
 import com.Reboot.Minty.member.dto.JoinDto;
+import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Table(name = "user")
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -55,6 +58,7 @@ public class User {
     @Column(nullable = false, name = "point", columnDefinition = "INT DEFAULT 0")
     private int point;
 
+
     public User(String name, String email, String ageRange, String mobile, String gender) {
         this.name = name;
         this.email = email;
@@ -79,4 +83,5 @@ public class User {
         user.setPoint(0);
         return user;
     }
+
 }

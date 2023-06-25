@@ -1,13 +1,9 @@
 package com.Reboot.Minty.tradeBoard.controller;
 
 import com.Reboot.Minty.categories.CategoryService;
-import com.Reboot.Minty.categories.entity.SubCategory;
-import com.Reboot.Minty.categories.entity.TopCategory;
-import com.Reboot.Minty.tradeBoard.dto.TradeBoardDto;
-import com.Reboot.Minty.tradeBoard.dto.TradeBoardFormDto;
-import com.Reboot.Minty.tradeBoard.dto.TradeBoardSearchDto;
-import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
-import com.Reboot.Minty.tradeBoard.entity.TradeBoardImg;
+import com.Reboot.Minty.categories.dto.SubCategoryDto;
+import com.Reboot.Minty.categories.dto.TopCategoryDto;
+import com.Reboot.Minty.tradeBoard.dto.*;
 import com.Reboot.Minty.tradeBoard.repository.TradeBoardRepository;
 import com.Reboot.Minty.tradeBoard.service.TradeBoardService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -56,24 +51,23 @@ public class TradeBoardController {
     }
 
 
-    @GetMapping(value = {"/api/boardList/{page}", "/api/boardList/"})
+    @GetMapping(value = {"/api/boardList/{page}", "/api/boardList/", "/api/boardList/category/{subCategoryId}/{page}"})
     @ResponseBody
     public Map<String, Object> getBoardList(
             TradeBoardSearchDto tradeBoardSearchDto,
             @PathVariable(value = "page", required = false) Optional<Integer> page
     ) {
-        List<TopCategory> topCategories = categoryService.getTopCategoryList();
-        List<SubCategory> subCategories = categoryService.getSubCategoryList();
-        Pageable pageable = PageRequest.of(page.isPresent()?page.get() : 0,10);
+        List<TopCategoryDto> topCategories = categoryService.getTopCategoryList();
+        List<SubCategoryDto> subCategories = categoryService.getSubCategoryList();
+        Pageable pageable = PageRequest.of(page.isPresent()?page.get() -1 : 0,10);
         Page<TradeBoardDto> tradeBoards = tradeBoardService.getTradeBoard(tradeBoardSearchDto, pageable);
-
         Map<String, Object> response = new HashMap<>();
         response.put("sub", subCategories);
         response.put("top", topCategories);
-        response.put("tradeBoards", tradeBoards);
-        response.put("tradeBoardSearchDto",tradeBoardSearchDto);
+        response.put("tradeBoards",tradeBoards);
         response.put("totalPages", tradeBoards.getTotalPages());
         response.put("page", tradeBoards.getNumber());
+
         return response;
     }
 
@@ -84,30 +78,32 @@ public class TradeBoardController {
 
     @GetMapping("/api/boardDetail/{boardId}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> getDetail(@PathVariable("boardId") Long boardId, HttpServletRequest request) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<?> getDetail(@PathVariable("boardId") Long boardId, HttpServletRequest request) {
+
         try {
-            TradeBoard tradeBoard = tradeBoardService.findById(boardId);
-            List<TradeBoardImg> imageList = tradeBoardService.getImgList(boardId);
+            TradeBoardDetailDto tradeBoard = tradeBoardService.findById(boardId);
+            List<TradeBoardImgDto> imageList = tradeBoardService.getImgList(boardId);
+
             String nickName = tradeBoard.getUser().getNickName();
             HttpSession session = request.getSession();
             boolean isAuthor = tradeBoard.getUser().getEmail().equals(session.getAttribute("userEmail"));
-            response.put("isAuthor", isAuthor);
-            response.put("tradeBoard", tradeBoard);
-            response.put("nickName", nickName);
-            response.put("imageList", imageList);
-            return ResponseEntity.ok(response); // 200 OK 응답 반환
+            System.out.println("isAuthor>>"+isAuthor);
+            System.out.println(nickName);
+            TradeBoardDetailResponseDto response = new TradeBoardDetailResponseDto();
+            response.setAuthor(isAuthor);
+            response.setTradeBoard(tradeBoard);
+            response.setNickName(nickName);
+            response.setImageList(imageList);
+            return ResponseEntity.ok().body(response);
         }
         catch (AccessDeniedException e) {
-            response.put("error", "해당 게시글의 읽기 권한이 없습니다.");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response); // 403 Forbidden 오류 반환
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         }
         catch (EntityNotFoundException e) {
-            response.put("error", "존재 하지 않는 글입니다.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response); // 404 Not Found 오류 반환
-        } catch (Exception e){
-            response.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -123,8 +119,8 @@ public class TradeBoardController {
     public Map<String, Object> getWriteForm(HttpServletRequest request, Optional<Long> boardId) {
 
         Map<String, Object> response = new HashMap<>();
-        List<TopCategory> topCategories = categoryService.getTopCategoryList();
-        List<SubCategory> subCategories = categoryService.getSubCategoryList();
+        List<TopCategoryDto> topCategories = categoryService.getTopCategoryList();
+        List<SubCategoryDto> subCategories = categoryService.getSubCategoryList();
         CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
         response.put("csrfToken", csrfToken.getToken());
         response.put("sub", subCategories);

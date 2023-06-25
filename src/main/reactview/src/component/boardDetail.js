@@ -33,10 +33,10 @@ const fetchData = () => {
     .then((response) => {
       if (response.status === 200) {
         setTradeBoard(response.data.tradeBoard);
-        setNickName(response.data.nickName);
         let list = [...response.data.imageList];
+        setNickName(response.data.nickName);
         setImageList(list);
-        setIsAuthor(response.data.isAuthor);
+        setIsAuthor(response.data.author);
       } else {
         alert("알 수 없는 오류");
         window.history.back(); // 이전 페이지로 이동
@@ -46,8 +46,8 @@ const fetchData = () => {
       if (error.response && error.response.data && error.response.data.error) {
         alert(error.response.data.error);
       } else {
-        alert("error");
         console.log(error);
+        alert("error");
       }
       window.history.back(); // 이전 페이지로 이동
     });
@@ -74,7 +74,7 @@ const fetchData = () => {
 
   const purchasingReq = () => {
       axios
-        .post('/api/purchasingReq', tradeBoard, {
+        .post('/api/purchasingReq', tradeBoard.id, {
           headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': csrfToken,

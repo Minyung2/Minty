@@ -25,21 +25,21 @@ function BoardList() {
 
   useEffect(() => {
     fetchData();
-  }, [categoryId, currentPage]);
+  }, [categoryId, currentPage, selectedSubCategory]);
 
   const fetchData = async () => {
     let endpoint;
-    if (categoryId) {
-
+    if (selectedCategory) {
+        endpoint = `/api/boardList/category/${selectedSubCategory}/${currentPage}`;
     } else {
-      endpoint = `/api/boardList/${currentPage}`;
+        endpoint = `/api/boardList/${currentPage}`;
     }
     await axios
       .get(endpoint)
       .then((response) => {
         let top = [...response.data.top];
         let sub = [...response.data.sub];
-        let boards = [...response.data.tradeBoards];
+        let boards = [...response.data.tradeBoards.content];
         let total = response.data.totalPages;
         setTopCategories(top);
         setSubCategories(sub);

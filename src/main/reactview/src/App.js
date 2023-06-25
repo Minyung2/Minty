@@ -33,7 +33,6 @@ function App() {
                     <Route path="/writeForm" element={<WriteForm csrfToken={csrfToken} />} />
                     <Route path="/writeForm/:boardId" element={<WriteForm csrfToken={csrfToken} />} />
                     <Route path="/boardList" element={<BoardList />} />
-                    <Route path="/boardList/" element={<BoardList />} />
                     <Route path="/boardList/:page" element={<BoardList />} />
                     <Route path="/boardList/category/:id" element={<BoardList />} />
                     <Route path="/boardList/category/:id/:page" element={<BoardList />} />

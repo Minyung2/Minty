@@ -1,24 +1,21 @@
 package com.Reboot.Minty.tradeBoard.repository;
 
-import com.Reboot.Minty.categories.entity.SubCategory;
-import com.Reboot.Minty.tradeBoard.dto.QTradeBoardDto;
+import com.Reboot.Minty.categories.dto.SubCategoryDto;
 import com.Reboot.Minty.tradeBoard.dto.TradeBoardDto;
 import com.Reboot.Minty.tradeBoard.dto.TradeBoardSearchDto;
 import com.Reboot.Minty.tradeBoard.entity.QTradeBoard;
 import com.Reboot.Minty.utils.OrderByNull;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
-import org.thymeleaf.util.StringUtils;
 
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 
@@ -62,9 +59,9 @@ public class TradeBoardCustomRepository {
         return null;
     }
 
-    private BooleanExpression searchByCategory(SubCategory subCategory) {
-        if (subCategory != null) {
-            return QTradeBoard.tradeBoard.subCategory.id.eq(subCategory.getId());
+    private BooleanExpression searchByCategory(Long subCategoryId) {
+        if (subCategoryId != null) {
+            return QTradeBoard.tradeBoard.subCategory.id.eq(subCategoryId);
         }
         return null;
     }
@@ -90,7 +87,7 @@ public class TradeBoardCustomRepository {
             searchExpression = searchExpression.and(likeExpression);
         }
 
-        BooleanExpression categoryExpression = searchByCategory(searchDto.getSubCategory());
+        BooleanExpression categoryExpression = searchByCategory(searchDto.getSubCategoryId());
         if (categoryExpression != null) {
             searchExpression = searchExpression.and(categoryExpression);
         }
@@ -103,10 +100,12 @@ public class TradeBoardCustomRepository {
         // Add sorting
         OrderSpecifier<?> orderSpecifier = sortingItems(searchDto.getSortBy());
 
-        List<TradeBoardDto> tradeBoards = queryFactory.select(new QTradeBoardDto(
-                        qtb.id, qtb.price, qtb.title, qtb.createdDate, qtb.modifiedDate, qtb.interesting,
-                        qtb.visit_count, qtb.topCategory, qtb.subCategory, qtb.thumbnail, qtb.user,
-                        qtb.userLocation, qtb.status))
+        List<TradeBoardDto> tradeBoards = queryFactory.select(Projections.constructor(TradeBoardDto.class,
+                        qtb.id, qtb.price, qtb.title, qtb.createdDate, qtb.modifiedDate, qtb.interesting, qtb.visit_count, qtb.thumbnail,
+                        qtb.topCategory.id, qtb.topCategory.name, qtb.subCategory.id, qtb.subCategory.name,
+                        qtb.user.id, qtb.user.email, qtb.user.nickName,
+                        qtb.userLocation.id, qtb.userLocation.address,
+                        qtb.status))
                 .from(qtb)
                 .where(searchExpression)
                 .orderBy(orderSpecifier)

@@ -1,5 +1,6 @@
 package com.Reboot.Minty.tradeBoard.dto;
 
+import com.Reboot.Minty.categories.dto.SubCategoryDto;
 import com.Reboot.Minty.categories.entity.SubCategory;
 import lombok.Data;
 
@@ -7,7 +8,7 @@ import lombok.Data;
 public class TradeBoardSearchDto {
     String sortBy;
     String searchQuery="";
-    SubCategory subCategory;
+    Long subCategoryId;
     int minPrice;
     int maxPrice;
 }
