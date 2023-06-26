@@ -6,9 +6,9 @@ import lombok.Data;
 
 @Data
 public class TradeBoardSearchDto {
-    String sortBy;
-    String searchQuery="";
     Long subCategoryId;
     int minPrice;
     int maxPrice;
+    String sortBy;
+    String searchQuery="";
 }

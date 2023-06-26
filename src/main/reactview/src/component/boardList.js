@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Pagination from './pagination';
-import { Button ,Container, Row, Col, Nav } from 'react-bootstrap';
+import { Button ,Container, Row, Col, Nav, Form } from 'react-bootstrap';
 import '../css/boardList.css';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -15,12 +15,17 @@ function BoardList() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [tradeBoards, setTradeBoards] = useState([]);
   const { id: categoryId, page: pageParam } = useParams();
-const [searchQuery, setSearchQuery] = useState('');
+ const [searchQuery, setSearchQuery] = useState('');
  const [searchQueryInput, setSearchQueryInput] = useState('');
   const [currentPage, setCurrentPage] = useState(pageParam ? Number(pageParam) : 1);
   const [totalPages, setTotalPages] = useState(0);
   const navigate = useNavigate();
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+  const [minPrice, setMinPrice] = useState(null);
+  const [maxPrice, setMaxPrice] = useState(null);
+  const [minPriceInput, setMinPriceInput] = useState(null);
+  const [maxPriceInput, setMaxPriceInput] = useState(null);
+  const [sortBy, setSortBy] = useState('');
 
 const handleSearch = (e) => {
      e.preventDefault();
@@ -28,9 +33,6 @@ const handleSearch = (e) => {
     setCurrentPage(1);
     const searchQuery = e.target.elements.searchQuery.value;
     setSearchQuery(searchQuery);
-    const url = searchQuery
-          ? `/api/jobList/searchQuery/${searchQuery}/${currentPage}`
-          : `/api/jobList/${currentPage}`;
     fetchData();
   };
 
@@ -38,36 +40,65 @@ const handleSearch = (e) => {
     setCurrentPage(pageNumber);
   };
 
-   useEffect(() => {
-      fetchData();
-    }, [categoryId, currentPage, selectedSubCategory, searchQuery]);
+const handleSortByChange = (e) => {
+  const selectedSortBy = e.target.value;
+  setSortBy(selectedSortBy);
+  fetchData();
+};
+
+const searchByPrice = (e) => {
+  e.preventDefault();
+  setCurrentPage(1);
+
+  const minPrice = e.target.elements.minPrice.value;
+  const maxPrice = e.target.elements.maxPrice.value;
+  setMinPrice(parseInt(minPrice));
+  setMaxPrice(parseInt(maxPrice));
+
+  fetchData();
+};
+
+    useEffect(() => {
+         fetchData();
+       }, [categoryId, currentPage, selectedSubCategory, searchQuery, minPrice, maxPrice, sortBy]);
 
   const fetchData = async () => {
-    let endpoint;
-    if (selectedCategory) {
-      endpoint = `/api/boardList/category/${selectedSubCategory}/${currentPage}`;
-    } else {
-      endpoint = `/api/boardList/${currentPage}`;
-    }
-    if (searchQuery) {
-        endpoint += `/searchQuery/${searchQuery}`;
-    }
-    await axios
-      .get(endpoint)
-      .then((response) => {
-        let top = [...response.data.top];
-        let sub = [...response.data.sub];
-        let boards = [...response.data.tradeBoards.content];
-        let total = response.data.totalPages;
-        setTopCategories(top);
-        setSubCategories(sub);
-        setTradeBoards(boards);
-        setTotalPages(total);
-      })
-      .catch((error) => {
-        console.error('Error fetching data:', error);
-      });
+      let endpoint;
+      if (selectedCategory) {
+        endpoint = `/api/boardList/category/${selectedSubCategory}`;
+      } else {
+        endpoint = `/api/boardList`;
+      }
+      if (searchQuery) {
+          endpoint += `/searchQuery/${searchQuery}`;
+      }
+     if (minPrice) {
+          endpoint += `/minPrice/${minPrice}`;
+        }
+        if (maxPrice) {
+          endpoint += `/maxPrice/${maxPrice}`;
+        }
+        if(sortBy){
+          endpoint += `/sortBy/${sortBy}`;
+        }
+      endpoint += `/${currentPage}`;
+      await axios
+        .get(endpoint)
+        .then((response) => {
+          let top = [...response.data.top];
+          let sub = [...response.data.sub];
+          let boards = [...response.data.tradeBoards.content];
+          let total = response.data.totalPages;
+          setTopCategories(top);
+          setSubCategories(sub);
+          setTradeBoards(boards);
+          setTotalPages(total);
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+        });
   };
+
 
   const handleTopCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
@@ -84,7 +115,18 @@ const handleSearch = (e) => {
               </button>
             </Col>
           </Row>
-                  </form>
+    </form>
+    <Row className="justify-content-end">
+     <Col md={2}>
+       <Form.Select className="sortBy" onChange={handleSortByChange}>
+         <option value="">정렬 방식</option>
+         <option value="itemDesc">최신순</option>
+         <option value="priceAsc">낮은 가격순</option>
+         <option value="priceDesc">높은 가격순</option>
+       </Form.Select>
+     </Col>
+    </Row>
+
       <Row>
         <Col sm={1}>
           <Nav className="flex-column">
@@ -173,6 +215,18 @@ const handleSearch = (e) => {
             <Pagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPageAndNavigate} />
           </div>
         </Col>
+           <form onSubmit={searchByPrice}>
+          <Col sm={2}>
+               <input type="number" name="minPrice" placeholder="최소 가격" value={minPriceInput} onChange={(e) => setMinPriceInput(e.target.value)} />
+               <input type="number" name="maxPrice" placeholder="최대 가격" value={maxPriceInput} onChange={(e) => setMaxPriceInput(e.target.value)} />
+               <button type="submit">
+                 검색
+               </button>
+               <button onClick={() => { setMinPriceInput(''); setMaxPriceInput(''); setMinPrice(null); setMaxPrice(null); fetchData(); }}>
+                     가격 필터 초기화
+                   </button>
+             </Col>
+        </form>
       </Row>
     </Container>
   );

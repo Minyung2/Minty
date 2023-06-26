@@ -38,6 +38,9 @@ function App() {
                     <Route path="/boardList/category/:id/:page" element={<BoardList />} />
                     <Route path="/boardList/searchQuery/:searchQuery"element={<BoardList />} />
                     <Route path="/boardList/searchQuery/:searchQuery/:page"element={<BoardList />} />
+                    <Route path="/boardList/minPrice/:minPrice/:page"element={<BoardList />} />
+                    <Route path="/boardList/maxPrice/:maxPrice/:page"element={<BoardList />} />
+                    <Route path="/boardList/minPrice/:minPrice/maxPrice/:maxPrice/:page"element={<BoardList />} />
                     <Route path="/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/{page}" element={<BoardList />} />
                     <Route path="/boardDetail/:id" element={<BoardDetail csrfToken={csrfToken} />} />
                     <Route path="/jobList" element={<JobList />} />

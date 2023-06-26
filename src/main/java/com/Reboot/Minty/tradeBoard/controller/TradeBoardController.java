@@ -52,25 +52,69 @@ public class TradeBoardController {
 
 
     @GetMapping(value = {
-            "/api/boardList/{page}",
             "/api/boardList/",
+            "/api/boardList/{page}",
+            // 1 필터
             "/api/boardList/category/{subCategoryId}/{page}",
+            "/api/boardList/sortBy/{sortBy}/{page}",
+            "/api/boardList/minPrice/{minPrice}/{page}",
+            "/api/boardList/maxPrice/{maxPrice}/{page}",
             "/api/boardList/searchQuery/{searchQuery}/{page}",
-            "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/{page}"
+            // 2 필터
+            "/api/boardList/category/{subCategoryId}/sortBy/{sortBy}/{page}",
+            "/api/boardList/category/{subCategoryId}/minPrice/{minPrice}/{page}",
+            "/api/boardList/category/{subCategoryId}/maxPrice/{maxPrice}/{page}",
+            "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/{page}",
+            "/api/boardList/minPrice/{minPrice}/sortBy/{sortBy}/{page}",
+            "/api/boardList/minPrice/{minPrice}/searchQuery/{searchQuery}/{page}",
+            "/api/boardList/minPrice/{minPrice}/maxPrice/{maxPrice}/{page}",
+            "/api/boardList/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}",
+            "/api/boardList/maxPrice/{maxPrice}/searchQuery/{searchQuery}/{page}",
+            "/api/boardList/searchQuery/{searchQuery}/sortBy/{sortBy}/{page}",
+            // 3 필터
+            "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/sortBy/{sortBy}/{page}",
+            "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/minPrice/{minPrice}/{page}",
+            "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/maxPrice/{maxPrice}/{page}",
+            "/api/boardList/category/{subCategoryId}/minPrice/{minPrice}/maxPrice/{maxPrice}/{page}",
+            "/api/boardList/category/{subCategoryId}/minPrice/{minPrice}/sortBy/{sortBy}/{page}",
+            "/api/boardList/category/{subCategoryId}/minPrice/{minPrice}/searchQuery/{searchQuery}/{page}",
+            "/api/boardList/category/{subCategoryId}/maxPrice/{maxPrice}/searchQuery/{searchQuery}/{page}",
+            "/api/boardList/category/{subCategoryId}/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}",
+            "/api/boardList/searchQuery/{searchQuery}/minPrice/{minPrice}/maxPrice/{maxPrice}/{page}",
+            // 4 필터
+            "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/minPrice/{minPrice}/maxPrice/{maxPrice}/{page}",
+            "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/minPrice/{minPrice}/sortBy/{sortBy}/{page}",
+            "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}",
+            "/api/boardList/category/{subCategoryId}/minPrice/{minPrice}/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}",
+            "/api/boardList/minPrice/{minPrice}/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}",
+            
+            // 모든 필터
+            "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/minPrice/{minPrice}/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}"
     })
     @ResponseBody
     public Map<String, Object> getBoardList(
             TradeBoardSearchDto tradeBoardSearchDto,
             @PathVariable(value = "page", required = false) Optional<Integer> page,
             @PathVariable(value = "subCategoryId", required = false) Optional<Long> subCategoryId,
-            @PathVariable(value = "searchQuery", required = false) Optional<String> searchQuery
-
+            @PathVariable(value = "searchQuery", required = false) Optional<String> searchQuery,
+            @PathVariable(value = "minPrice", required = false) Optional<Integer> minPrice,
+            @PathVariable(value = "maxPrice", required = false) Optional<Integer> maxPrice,
+            @PathVariable(value = "sortBy", required = false) Optional<String> sortBy
     ) {
         if (subCategoryId.isPresent()) {
             tradeBoardSearchDto.setSubCategoryId(subCategoryId.get());
         }
         if (searchQuery.isPresent()) {
             tradeBoardSearchDto.setSearchQuery(searchQuery.get());
+        }
+        if (minPrice.isPresent()) { // 추가된 조건문
+            tradeBoardSearchDto.setMinPrice(minPrice.get());
+        }
+        if (maxPrice.isPresent()) { // 추가된 조건문
+            tradeBoardSearchDto.setMaxPrice(maxPrice.get());
+        }
+        if (sortBy.isPresent()) {
+            tradeBoardSearchDto.setSortBy(sortBy.get());
         }
         List<TopCategoryDto> topCategories = categoryService.getTopCategoryList();
         List<SubCategoryDto> subCategories = categoryService.getSubCategoryList();

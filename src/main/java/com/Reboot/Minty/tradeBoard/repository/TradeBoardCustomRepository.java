@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.thymeleaf.util.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -47,13 +48,13 @@ public class TradeBoardCustomRepository {
         if (Objects.isNull(sortBy)) {
             return OrderByNull.getDefault();
         }
-        if (sortBy == "itemDesc") {
+        if (StringUtils.equals("itemDesc", sortBy)) {
             return new OrderSpecifier<>(order, QTradeBoard.tradeBoard.modifiedDate);
         }
-        if (sortBy == "priceAsc") {
+        if (StringUtils.equals("priceAsc", sortBy)) {
             return new OrderSpecifier<>(Order.ASC, QTradeBoard.tradeBoard.price);
         }
-        if (sortBy == "priceDesc") {
+        if (StringUtils.equals("priceDesc", sortBy)) {
             return new OrderSpecifier<>(order, QTradeBoard.tradeBoard.price);
         }
         return null;
@@ -68,11 +69,11 @@ public class TradeBoardCustomRepository {
 
     private BooleanExpression searchPriceByBetween(int minPrice, int maxPrice) {
         if (minPrice > 0 && maxPrice > 0) {
-            return QTradeBoard.tradeBoard.price.between(minPrice * 10000, maxPrice * 10000);
+            return QTradeBoard.tradeBoard.price.between(minPrice, maxPrice);
         } else if (minPrice > 0) {
-            return QTradeBoard.tradeBoard.price.goe(minPrice * 10000);
+            return QTradeBoard.tradeBoard.price.goe(minPrice);
         } else if (maxPrice > 0) {
-            return QTradeBoard.tradeBoard.price.loe(maxPrice * 10000);
+            return QTradeBoard.tradeBoard.price.loe(maxPrice);
         }
         return null;
     }
@@ -96,6 +97,7 @@ public class TradeBoardCustomRepository {
         if (priceExpression != null) {
             searchExpression = searchExpression.and(priceExpression);
         }
+        System.out.println(searchExpression);
 
         // Add sorting
         OrderSpecifier<?> orderSpecifier = sortingItems(searchDto.getSortBy());

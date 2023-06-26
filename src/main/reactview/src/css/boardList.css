@@ -112,3 +112,7 @@ white-space: nowrap;
 .sell-board-p{
     border-bottom: 1px solid grey;
 }
+
+.sortBy{
+    width:180px;
+}
