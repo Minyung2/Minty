@@ -26,6 +26,12 @@ function BoardList() {
   const [minPriceInput, setMinPriceInput] = useState(null);
   const [maxPriceInput, setMaxPriceInput] = useState(null);
   const [sortBy, setSortBy] = useState('');
+  const [activeFilters, setActiveFilters] = useState([]);
+
+  const setCurrentPageAndNavigate = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
 
 const handleSearch = (e) => {
      e.preventDefault();
@@ -33,16 +39,58 @@ const handleSearch = (e) => {
     setCurrentPage(1);
     const searchQuery = e.target.elements.searchQuery.value;
     setSearchQuery(searchQuery);
+   if (searchQuery) {
+       // 이미 해당 필터 유형이 존재하는지 확인
+       const existingFilter = activeFilters.find((filter) => filter.type === '검색어');
+       if (existingFilter) {
+         // 이미 존재하는 필터 유형이면 값을 업데이트
+         setActiveFilters((prevFilters) =>
+           prevFilters.map((filter) =>
+             filter.type === '검색어' ? { type: '검색어', value: searchQuery } : filter
+           )
+         );
+       } else {
+         // 존재하지 않는 필터 유형이면 새로 추가
+         setActiveFilters((prevFilters) => [...prevFilters, { type: '검색어', value: searchQuery }]);
+       }
+     }
     fetchData();
   };
 
-  const setCurrentPageAndNavigate = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
+
 
 const handleSortByChange = (e) => {
   const selectedSortBy = e.target.value;
   setSortBy(selectedSortBy);
+
+  if (selectedSortBy) {
+    let filterValue;
+    switch(selectedSortBy) {
+      case 'itemDesc':
+        filterValue = '최신순';
+        break;
+      case 'priceAsc':
+        filterValue = '낮은 가격순';
+        break;
+      case 'priceDesc':
+        filterValue = '높은 가격순';
+        break;
+      default:
+        filterValue = '';
+        break;
+    }
+
+    const existingFilter = activeFilters.find((filter) => filter.type === '정렬 방식');
+    if (existingFilter) {
+      setActiveFilters((prevFilters) =>
+        prevFilters.map((filter) =>
+          filter.type === '정렬 방식' ? { type: '정렬 방식', value: filterValue } : filter
+        )
+      );
+    } else {
+      setActiveFilters((prevFilters) => [...prevFilters, { type: '정렬 방식', value: filterValue }]);
+    }
+  }
   fetchData();
 };
 
@@ -54,7 +102,32 @@ const searchByPrice = (e) => {
   const maxPrice = e.target.elements.maxPrice.value;
   setMinPrice(parseInt(minPrice));
   setMaxPrice(parseInt(maxPrice));
+   const existingMinPriceFilter = activeFilters.find((filter) => filter.type === '최소 가격');
+     const existingMaxPriceFilter = activeFilters.find((filter) => filter.type === '최대 가격');
 
+     if (minPrice && existingMinPriceFilter) {
+       // 이미 존재하는 minPrice 필터 유형이면 값을 업데이트
+       setActiveFilters((prevFilters) =>
+         prevFilters.map((filter) =>
+           filter.type === '최소 가격' ? { type: '최소 가격', value: minPrice } : filter
+         )
+       );
+     } else if (minPrice) {
+       // 존재하지 않는 minPrice 필터 유형이면 새로 추가
+       setActiveFilters((prevFilters) => [...prevFilters, { type: '최소 가격', value: minPrice }]);
+     }
+
+     if (maxPrice && existingMaxPriceFilter) {
+       // 이미 존재하는 maxPrice 필터 유형이면 값을 업데이트
+       setActiveFilters((prevFilters) =>
+         prevFilters.map((filter) =>
+           filter.type === '최대 가격' ? { type: '최대 가격', value: maxPrice } : filter
+         )
+       );
+     } else if (maxPrice) {
+       // 존재하지 않는 maxPrice 필터 유형이면 새로 추가
+       setActiveFilters((prevFilters) => [...prevFilters, { type: '최대 가격', value: maxPrice }]);
+     }
   fetchData();
 };
 
@@ -100,9 +173,79 @@ const searchByPrice = (e) => {
   };
 
 
+     const removeFilter = (filterType) => {
+        setActiveFilters((prevFilters) => prevFilters.filter((filter) => filter.type !== filterType));
+
+        // 각 필터 유형에 따라 관련 state를 초기화합니다.
+        switch (filterType) {
+          case '검색어':
+            setSearchQuery('');
+            break;
+          case '최소 가격':
+            setMinPrice(null);
+            break;
+          case '최대 가격':
+            setMaxPrice(null);
+            break;
+          case '정렬 방식':
+            setSortBy('');
+            break;
+          case '카테고리':
+            setSelectedSubCategory(null);
+            break;
+          default:
+            break;
+        }
+
+        fetchData();
+      };
+
+
+  const renderTopCategories = topCategories.map((category) => (
+    <Nav.Item key={category.id}>
+      <Button
+        onClick={() => handleTopCategoryClick(category.id)}
+        active={category.id === selectedCategory}
+        className="category-link"
+      >
+        {category.name}
+      </Button>
+    </Nav.Item>
+  ));
+
+  const renderSubCategories = subCategories
+    .filter((subcategory) => subcategory.topCategory.id === selectedCategory)
+    .map((subcategory) => (
+      <Nav.Item key={subcategory.id}>
+        <Button
+          onClick={() => handleSubCategoryClick(subcategory.id, subcategory.name)}
+          className={`sub-category-link ${selectedSubCategory === subcategory.id ? 'active' : ''}`}
+        >
+          {subcategory.name}
+        </Button>
+      </Nav.Item>
+    ));
+
   const handleTopCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
+    setSelectedSubCategory(null);
   };
+
+  const handleSubCategoryClick = (subCategoryId, subCategoryName) => {
+    setSelectedSubCategory(subCategoryId);
+    const existingSubCategoryFilter = activeFilters.find((filter) => filter.type === '카테고리');
+    if (existingSubCategoryFilter) {
+      setActiveFilters((prevFilters) =>
+        prevFilters.map((filter) =>
+          filter.type === '카테고리' ? { type: '카테고리', value: subCategoryName } : filter
+        )
+      );
+    } else {
+      setActiveFilters((prevFilters) => [...prevFilters, { type: '카테고리', value: subCategoryName }]);
+    }
+    setCurrentPage(1);
+  };
+
 
   return (
     <Container fluid>
@@ -116,6 +259,18 @@ const searchByPrice = (e) => {
             </Col>
           </Row>
     </form>
+    <Row className="justify-content-start">
+     <div>
+          {activeFilters.map((filter) => (
+            <div key={filter.type}>
+              <span>
+                {filter.type} : {filter.value}
+              </span>
+              <button onClick={() => removeFilter(filter.type)}>x</button>
+            </div>
+          ))}
+        </div>
+    </Row>
     <Row className="justify-content-end">
      <Col md={2}>
        <Form.Select className="sortBy" onChange={handleSortByChange}>
@@ -131,43 +286,15 @@ const searchByPrice = (e) => {
         <Col sm={1}>
           <Nav className="flex-column">
             <div>
-              <a href={`/boardList`} className="category-link nav-link">
+              <Button href={`/boardList`} className="category-link">
                 전체
-              </a>
+              </Button>
             </div>
-            {topCategories.map((category) => (
-              <Nav.Item key={category.id}>
-                <Nav.Link
-                  onClick={() => handleTopCategoryClick(category.id)}
-                  active={category.id === selectedCategory}
-                  className="category-link"
-                >
-                  {category.name}
-                </Nav.Link>
-              </Nav.Item>
-            ))}
+            {renderTopCategories}
           </Nav>
         </Col>
         <Col sm={1} className={selectedCategory ? 'show-subcategory' : 'hide-subcategory'}>
-          {selectedCategory && (
-            <Nav className="flex-column">
-              {subCategories
-                .filter((subcategory) => subcategory.topCategory.id === selectedCategory)
-                .map((subcategory) => (
-                  <Nav.Item key={subcategory.id}>
-                    <Link
-                      onClick={() => {
-                        setSelectedSubCategory(subcategory.id);
-                        setCurrentPage(1);
-                      }}
-                      className={`sub-category-link ${selectedSubCategory === subcategory.id ? 'active' : ''}`}
-                    >
-                      {subcategory.name}
-                    </Link>
-                  </Nav.Item>
-                ))}
-            </Nav>
-          )}
+          {selectedCategory && <Nav className="flex-column">{renderSubCategories}</Nav>}
         </Col>
         <Col sm={9} className={selectedCategory ? 'pushed-content' : ''}>
           {tradeBoards.length > 0 ? (

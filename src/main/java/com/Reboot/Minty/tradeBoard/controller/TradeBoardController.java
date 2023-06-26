@@ -87,7 +87,7 @@ public class TradeBoardController {
             "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}",
             "/api/boardList/category/{subCategoryId}/minPrice/{minPrice}/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}",
             "/api/boardList/minPrice/{minPrice}/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}",
-            
+            "/api/boardList/searchQuery/{searchQuery}/minPrice/{minPrice}/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}",
             // 모든 필터
             "/api/boardList/category/{subCategoryId}/searchQuery/{searchQuery}/minPrice/{minPrice}/maxPrice/{maxPrice}/sortBy/{sortBy}/{page}"
     })
@@ -107,10 +107,10 @@ public class TradeBoardController {
         if (searchQuery.isPresent()) {
             tradeBoardSearchDto.setSearchQuery(searchQuery.get());
         }
-        if (minPrice.isPresent()) { // 추가된 조건문
+        if (minPrice.isPresent()) {
             tradeBoardSearchDto.setMinPrice(minPrice.get());
         }
-        if (maxPrice.isPresent()) { // 추가된 조건문
+        if (maxPrice.isPresent()) {
             tradeBoardSearchDto.setMaxPrice(maxPrice.get());
         }
         if (sortBy.isPresent()) {
