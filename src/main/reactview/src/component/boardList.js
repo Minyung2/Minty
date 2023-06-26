@@ -20,7 +20,7 @@ function BoardList() {
   const [currentPage, setCurrentPage] = useState(pageParam ? Number(pageParam) : 1);
   const [totalPages, setTotalPages] = useState(0);
   const navigate = useNavigate();
-  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+  const [subCategoryId, setSubCategoryId] = useState(null);
   const [minPrice, setMinPrice] = useState(null);
   const [maxPrice, setMaxPrice] = useState(null);
   const [minPriceInput, setMinPriceInput] = useState(null);
@@ -40,17 +40,14 @@ const handleSearch = (e) => {
     const searchQuery = e.target.elements.searchQuery.value;
     setSearchQuery(searchQuery);
    if (searchQuery) {
-       // 이미 해당 필터 유형이 존재하는지 확인
        const existingFilter = activeFilters.find((filter) => filter.type === '검색어');
        if (existingFilter) {
-         // 이미 존재하는 필터 유형이면 값을 업데이트
          setActiveFilters((prevFilters) =>
            prevFilters.map((filter) =>
              filter.type === '검색어' ? { type: '검색어', value: searchQuery } : filter
            )
          );
        } else {
-         // 존재하지 않는 필터 유형이면 새로 추가
          setActiveFilters((prevFilters) => [...prevFilters, { type: '검색어', value: searchQuery }]);
        }
      }
@@ -106,26 +103,22 @@ const searchByPrice = (e) => {
      const existingMaxPriceFilter = activeFilters.find((filter) => filter.type === '최대 가격');
 
      if (minPrice && existingMinPriceFilter) {
-       // 이미 존재하는 minPrice 필터 유형이면 값을 업데이트
        setActiveFilters((prevFilters) =>
          prevFilters.map((filter) =>
            filter.type === '최소 가격' ? { type: '최소 가격', value: minPrice } : filter
          )
        );
      } else if (minPrice) {
-       // 존재하지 않는 minPrice 필터 유형이면 새로 추가
        setActiveFilters((prevFilters) => [...prevFilters, { type: '최소 가격', value: minPrice }]);
      }
 
      if (maxPrice && existingMaxPriceFilter) {
-       // 이미 존재하는 maxPrice 필터 유형이면 값을 업데이트
        setActiveFilters((prevFilters) =>
          prevFilters.map((filter) =>
            filter.type === '최대 가격' ? { type: '최대 가격', value: maxPrice } : filter
          )
        );
      } else if (maxPrice) {
-       // 존재하지 않는 maxPrice 필터 유형이면 새로 추가
        setActiveFilters((prevFilters) => [...prevFilters, { type: '최대 가격', value: maxPrice }]);
      }
   fetchData();
@@ -133,14 +126,15 @@ const searchByPrice = (e) => {
 
     useEffect(() => {
          fetchData();
-       }, [categoryId, currentPage, selectedSubCategory, searchQuery, minPrice, maxPrice, sortBy]);
+       }, [categoryId, currentPage, subCategoryId, searchQuery, minPrice, maxPrice, sortBy]);
 
   const fetchData = async () => {
       let endpoint;
-      if (selectedCategory) {
-        endpoint = `/api/boardList/category/${selectedSubCategory}`;
-      } else {
-        endpoint = `/api/boardList`;
+
+      endpoint = `/api/boardList`;
+
+      if (subCategoryId) {
+              endpoint += `/category/${subCategoryId}`;
       }
       if (searchQuery) {
           endpoint += `/searchQuery/${searchQuery}`;
@@ -175,8 +169,6 @@ const searchByPrice = (e) => {
 
      const removeFilter = (filterType) => {
         setActiveFilters((prevFilters) => prevFilters.filter((filter) => filter.type !== filterType));
-
-        // 각 필터 유형에 따라 관련 state를 초기화합니다.
         switch (filterType) {
           case '검색어':
             setSearchQuery('');
@@ -191,7 +183,7 @@ const searchByPrice = (e) => {
             setSortBy('');
             break;
           case '카테고리':
-            setSelectedSubCategory(null);
+            setSubCategoryId(null);
             break;
           default:
             break;
@@ -207,6 +199,7 @@ const searchByPrice = (e) => {
         onClick={() => handleTopCategoryClick(category.id)}
         active={category.id === selectedCategory}
         className="category-link"
+        style={{ backgroundColor: 'white',}}
       >
         {category.name}
       </Button>
@@ -219,7 +212,7 @@ const searchByPrice = (e) => {
       <Nav.Item key={subcategory.id}>
         <Button
           onClick={() => handleSubCategoryClick(subcategory.id, subcategory.name)}
-          className={`sub-category-link ${selectedSubCategory === subcategory.id ? 'active' : ''}`}
+          className={`sub-category-link ${subCategoryId === subcategory.id ? 'active' : ''}`}
         >
           {subcategory.name}
         </Button>
@@ -228,11 +221,11 @@ const searchByPrice = (e) => {
 
   const handleTopCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
-    setSelectedSubCategory(null);
+    setSubCategoryId(null);
   };
 
   const handleSubCategoryClick = (subCategoryId, subCategoryName) => {
-    setSelectedSubCategory(subCategoryId);
+    setSubCategoryId(subCategoryId);
     const existingSubCategoryFilter = activeFilters.find((filter) => filter.type === '카테고리');
     if (existingSubCategoryFilter) {
       setActiveFilters((prevFilters) =>
@@ -259,18 +252,23 @@ const searchByPrice = (e) => {
             </Col>
           </Row>
     </form>
-    <Row className="justify-content-start">
-     <div>
-          {activeFilters.map((filter) => (
-            <div key={filter.type}>
-              <span>
-                {filter.type} : {filter.value}
-              </span>
-              <button onClick={() => removeFilter(filter.type)}>x</button>
-            </div>
-          ))}
+<Row className="justify-content-start">
+  <div>
+    <p>필터</p>
+    {activeFilters.map((filter, index) => (
+      <React.Fragment key={filter.type}>
+        <div className={`filter ${filter.value.length > 10 ? 'long-text' : ''}`} key={filter.type}>
+          <span>
+            {filter.type} : {filter.value}
+          </span>
+          <button onClick={() => removeFilter(filter.type)}>x</button>
         </div>
-    </Row>
+        {(index + 1) % 2 === 0 && <br />} {/* 줄바꿈을 위한 br 요소 */}
+      </React.Fragment>
+    ))}
+  </div>
+</Row>
+
     <Row className="justify-content-end">
      <Col md={2}>
        <Form.Select className="sortBy" onChange={handleSortByChange}>
@@ -341,6 +339,7 @@ const searchByPrice = (e) => {
           <div className="pagination-container">
             <Pagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPageAndNavigate} />
           </div>
+
         </Col>
            <form onSubmit={searchByPrice}>
           <Col sm={2}>

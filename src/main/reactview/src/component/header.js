@@ -43,15 +43,11 @@ function Header({ csrfToken }) {
                     </a>
                     <div className="navbar-nav me-md-auto d-flex flex-row gap-2">
                         <p></p>
-                        <a href="/boardList/0" className="nav-link menu-a">
-                            팝니다
+                        <a href="/boardList" className="nav-link menu-a">
+                            거래보드
                         </a>
                         <p></p>
-                        <a href="/boardList/1" className="nav-link menu-a">
-                            삽니다
-                        </a>
-                        <p></p>
-                        <a href="/" className="nav-link menu-a">
+                        <a href="/jobList" className="nav-link menu-a">
                             급해요
                         </a>
                         <p></p>
