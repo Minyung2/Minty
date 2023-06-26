@@ -26,7 +26,7 @@ public class TradeBoardDetailDto {
     private Timestamp modifiedDate;
     private int interesting;
     private int visit_count;
-    private TopCategoryDto topCategory; // Updated to use TopCategoryDto instead of TopCategory
+    private TopCategoryDto topCategory;
     private SubCategoryDto subCategory;
     private UserDto user;
     private UserLocationDto userLocation;

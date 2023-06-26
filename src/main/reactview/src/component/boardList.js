@@ -199,7 +199,7 @@ const searchByPrice = (e) => {
         onClick={() => handleTopCategoryClick(category.id)}
         active={category.id === selectedCategory}
         className="category-link"
-        style={{ backgroundColor: 'white',}}
+        style={{ backgroundColor: 'white'}}
       >
         {category.name}
       </Button>
@@ -218,7 +218,6 @@ const searchByPrice = (e) => {
         </Button>
       </Nav.Item>
     ));
-
   const handleTopCategoryClick = (categoryId) => {
     setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
     setSubCategoryId(null);
@@ -339,9 +338,13 @@ const searchByPrice = (e) => {
           <div className="pagination-container">
             <Pagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPageAndNavigate} />
           </div>
-
+             <Row className="justify-content-end align-items-center">
+               <Col xs="auto">
+                 <a href="/writeForm" className="ml-auto"><Button>글쓰기</Button></a>
+               </Col>
+             </Row>
         </Col>
-           <form onSubmit={searchByPrice}>
+        <form onSubmit={searchByPrice}>
           <Col sm={2}>
                <input type="number" name="minPrice" placeholder="최소 가격" value={minPriceInput} onChange={(e) => setMinPriceInput(e.target.value)} />
                <input type="number" name="maxPrice" placeholder="최대 가격" value={maxPriceInput} onChange={(e) => setMaxPriceInput(e.target.value)} />
@@ -353,6 +356,7 @@ const searchByPrice = (e) => {
                    </button>
              </Col>
         </form>
+
       </Row>
     </Container>
   );
