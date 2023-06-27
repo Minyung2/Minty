@@ -66,9 +66,6 @@ var countdown = null;
   });
 }
 
-
-
-
     function verifyCode() {
       var enteredCode = $("#verificationCode").val(); // 입력한 인증번호
       var token = $("meta[name='_csrf']").attr("content");

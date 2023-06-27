@@ -17,7 +17,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByEmail(String email);
 
-
     User findByNickName(String nickName);
 
     int countByEmail(String email);
@@ -26,7 +25,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
     boolean existsByNickName(String nickName);
+
     Page<User> findByNameContainingIgnoreCaseOrNickNameContainingIgnoreCase(String name, String nickName, Pageable pageable);
+
     boolean existsByMobile(String mobile);
     List<User> findByRole(Role role);
     @Modifying

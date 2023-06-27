@@ -11,14 +11,13 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Repository;
 import org.thymeleaf.util.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Repository
 public class TradeBoardCustomRepository {
@@ -78,7 +77,7 @@ public class TradeBoardCustomRepository {
         return null;
     }
 
-    public Page<TradeBoardDto> getTradeBoardBy(TradeBoardSearchDto searchDto, Pageable pageable) {
+    public Slice<TradeBoardDto> getTradeBoardBy(TradeBoardSearchDto searchDto, Pageable pageable) {
         QTradeBoard qtb = QTradeBoard.tradeBoard;
         BooleanExpression searchExpression = qtb.isNotNull(); // Initial expression to start with
 
@@ -112,12 +111,20 @@ public class TradeBoardCustomRepository {
                 .where(searchExpression)
                 .orderBy(orderSpecifier)
                 .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
+                .limit(pageable.getPageSize() + 1)
                 .fetch();
 
-        long total = queryFactory.selectFrom(qtb).where(searchExpression).fetchCount();
+        List<TradeBoardDto> content = tradeBoards.stream().map(v -> new TradeBoardDto(v)).collect(Collectors.toList());
 
-        return new PageImpl<>(tradeBoards, pageable, total);
+        boolean hasNext = false;
+        if (content.size() > pageable.getPageSize()) {
+            hasNext = true;
+            content.remove(pageable.getPageSize());
+        }
+
+        return new SliceImpl<>(content, pageable, hasNext);
     }
+
+
 
 }

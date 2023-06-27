@@ -46,4 +46,5 @@ public class ScheduleListService {
     public void saveScheduleDuration(ScheduleDuration scheduleDuration) {
         scheduleDurationRepository.save(scheduleDuration);
     }
+
 }

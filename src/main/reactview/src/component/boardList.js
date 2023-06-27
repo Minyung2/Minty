@@ -7,18 +7,17 @@ import '../css/boardList.css';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { BiSearch } from 'react-icons/bi';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 
 function BoardList() {
   const [topCategories, setTopCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
+   const [loadedBoardIds, setLoadedBoardIds] = useState([]); // 기존에 로드된 게시물의 ID 저장
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [tradeBoards, setTradeBoards] = useState([]);
-  const { id: categoryId, page: pageParam } = useParams();
  const [searchQuery, setSearchQuery] = useState('');
  const [searchQueryInput, setSearchQueryInput] = useState('');
-  const [currentPage, setCurrentPage] = useState(pageParam ? Number(pageParam) : 1);
-  const [totalPages, setTotalPages] = useState(0);
   const navigate = useNavigate();
   const [subCategoryId, setSubCategoryId] = useState(null);
   const [minPrice, setMinPrice] = useState(null);
@@ -27,16 +26,14 @@ function BoardList() {
   const [maxPriceInput, setMaxPriceInput] = useState(null);
   const [sortBy, setSortBy] = useState('');
   const [activeFilters, setActiveFilters] = useState([]);
+const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
-  const setCurrentPageAndNavigate = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
 
 
 const handleSearch = (e) => {
      e.preventDefault();
-
-    setCurrentPage(1);
+    setPage(0);
     const searchQuery = e.target.elements.searchQuery.value;
     setSearchQuery(searchQuery);
    if (searchQuery) {
@@ -51,6 +48,7 @@ const handleSearch = (e) => {
          setActiveFilters((prevFilters) => [...prevFilters, { type: '검색어', value: searchQuery }]);
        }
      }
+
     fetchData();
   };
 
@@ -59,7 +57,7 @@ const handleSearch = (e) => {
 const handleSortByChange = (e) => {
   const selectedSortBy = e.target.value;
   setSortBy(selectedSortBy);
-
+     setPage(0);
   if (selectedSortBy) {
     let filterValue;
     switch(selectedSortBy) {
@@ -88,13 +86,13 @@ const handleSortByChange = (e) => {
       setActiveFilters((prevFilters) => [...prevFilters, { type: '정렬 방식', value: filterValue }]);
     }
   }
+
   fetchData();
 };
 
 const searchByPrice = (e) => {
   e.preventDefault();
-  setCurrentPage(1);
-
+        setPage(0);
   const minPrice = e.target.elements.minPrice.value;
   const maxPrice = e.target.elements.maxPrice.value;
   setMinPrice(parseInt(minPrice));
@@ -121,50 +119,60 @@ const searchByPrice = (e) => {
      } else if (maxPrice) {
        setActiveFilters((prevFilters) => [...prevFilters, { type: '최대 가격', value: maxPrice }]);
      }
+
   fetchData();
 };
 
     useEffect(() => {
          fetchData();
-       }, [categoryId, currentPage, subCategoryId, searchQuery, minPrice, maxPrice, sortBy]);
+       }, [subCategoryId, searchQuery, minPrice, maxPrice, sortBy, page]);
 
-  const fetchData = async () => {
-      let endpoint;
+const fetchData = async () => {
+  let endpoint = '/api/boardList';
 
-      endpoint = `/api/boardList`;
+  if (subCategoryId) {
+    endpoint += `/category/${subCategoryId}`;
+  }
+  if (searchQuery) {
+    endpoint += `/searchQuery/${searchQuery}`;
+  }
+  if (minPrice) {
+    endpoint += `/minPrice/${minPrice}`;
+  }
+  if (maxPrice) {
+    endpoint += `/maxPrice/${maxPrice}`;
+  }
+  if (sortBy) {
+    endpoint += `/sortBy/${sortBy}`;
+  }
+  endpoint += `/page/${page}`;
+    const nextPage = page + 1; // Add this line
+    setPage(nextPage); // Update this line
 
-      if (subCategoryId) {
-              endpoint += `/category/${subCategoryId}`;
-      }
-      if (searchQuery) {
-          endpoint += `/searchQuery/${searchQuery}`;
-      }
-     if (minPrice) {
-          endpoint += `/minPrice/${minPrice}`;
-        }
-        if (maxPrice) {
-          endpoint += `/maxPrice/${maxPrice}`;
-        }
-        if(sortBy){
-          endpoint += `/sortBy/${sortBy}`;
-        }
-      endpoint += `/${currentPage}`;
-      await axios
-        .get(endpoint)
-        .then((response) => {
-          let top = [...response.data.top];
-          let sub = [...response.data.sub];
-          let boards = [...response.data.tradeBoards.content];
-          let total = response.data.totalPages;
-          setTopCategories(top);
-          setSubCategories(sub);
-          setTradeBoards(boards);
-          setTotalPages(total);
-        })
-        .catch((error) => {
-          console.error('Error fetching data:', error);
-        });
-  };
+  console.log(endpoint);
+  await axios
+    .get(endpoint)
+    .then((response) => {
+      let top = [...response.data.top];
+      let sub = [...response.data.sub];
+      let boards = [...tradeBoards];
+      setTopCategories(top);
+      setSubCategories(sub);
+      setTradeBoards((prevBoards) => [...prevBoards, ...response.data.tradeBoards]);
+      setHasMore(response.data.hasNext);
+
+
+      // Store the IDs of the newly loaded boards
+      const newBoardIds = response.data.tradeBoards.map((board) => board.id);
+      setLoadedBoardIds((prevIds) => [...prevIds, ...newBoardIds]);
+      console.log(newBoardIds);
+    })
+    .catch((error) => {
+      console.error('Error fetching data:', error);
+    });
+};
+
+
 
 
      const removeFilter = (filterType) => {
@@ -172,18 +180,23 @@ const searchByPrice = (e) => {
         switch (filterType) {
           case '검색어':
             setSearchQuery('');
+               setPage(0);
             break;
           case '최소 가격':
             setMinPrice(null);
+               setPage(0);
             break;
           case '최대 가격':
             setMaxPrice(null);
+               setPage(0);
             break;
           case '정렬 방식':
             setSortBy('');
+               setPage(0);
             break;
           case '카테고리':
             setSubCategoryId(null);
+               setPage(0);
             break;
           default:
             break;
@@ -225,6 +238,7 @@ const searchByPrice = (e) => {
 
   const handleSubCategoryClick = (subCategoryId, subCategoryName) => {
     setSubCategoryId(subCategoryId);
+    setPage(0);
     const existingSubCategoryFilter = activeFilters.find((filter) => filter.type === '카테고리');
     if (existingSubCategoryFilter) {
       setActiveFilters((prevFilters) =>
@@ -235,7 +249,6 @@ const searchByPrice = (e) => {
     } else {
       setActiveFilters((prevFilters) => [...prevFilters, { type: '카테고리', value: subCategoryName }]);
     }
-    setCurrentPage(1);
   };
 
 
@@ -294,7 +307,15 @@ const searchByPrice = (e) => {
           {selectedCategory && <Nav className="flex-column">{renderSubCategories}</Nav>}
         </Col>
         <Col sm={9} className={selectedCategory ? 'pushed-content' : ''}>
-          {tradeBoards.length > 0 ? (
+          {tradeBoards ? (
+
+            <InfiniteScroll
+              dataLength={tradeBoards.length}
+              next={fetchData}
+              hasMore={hasMore}
+              loader={<h4>Loading...</h4>}
+              endMessage={<h4>No more items</h4>}
+            >
             <div className="sell-boards-container">
               {tradeBoards.map((board) => {
                 let timeAgo = formatDistanceToNow(parseISO(board.createdDate), { addSuffix: true, locale: ko });
@@ -332,18 +353,20 @@ const searchByPrice = (e) => {
                 );
               })}
             </div>
+              </InfiniteScroll>
           ) : (
             <div className="no-results-message">게시물이 없습니다.</div>
           )}
-          <div className="pagination-container">
-            <Pagination totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPageAndNavigate} />
-          </div>
+
+
              <Row className="justify-content-end align-items-center">
                <Col xs="auto">
                  <a href="/writeForm" className="ml-auto"><Button>글쓰기</Button></a>
                </Col>
              </Row>
+
         </Col>
+
         <form onSubmit={searchByPrice}>
           <Col sm={2}>
                <input type="number" name="minPrice" placeholder="최소 가격" value={minPriceInput} onChange={(e) => setMinPriceInput(e.target.value)} />

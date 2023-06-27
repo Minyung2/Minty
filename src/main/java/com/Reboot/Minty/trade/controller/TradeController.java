@@ -28,22 +28,22 @@ public class TradeController {
     private final TradeService tradeService;
     private final TradeBoardService tradeBoardService;
 
-    private final TradeBoardRepository tradeBoardRepository;
-
     private final UserService userService;
 
     private final ReviewService reviewService;
 
     private final ScheduleRepository scheduleRepository;
 
+    private final TradeBoardRepository tradeBoardRepository;
+
     @Autowired
-    public TradeController(TradeService tradeService, TradeBoardService tradeBoardService, TradeBoardRepository tradeBoardRepository, UserService userService, ReviewService reviewService, ScheduleRepository scheduleRepository) {
+    public TradeController(TradeService tradeService, TradeBoardService tradeBoardService, UserService userService, ReviewService reviewService, ScheduleRepository scheduleRepository, TradeBoardRepository tradeBoardRepository) {
         this.tradeService = tradeService;
         this.tradeBoardService = tradeBoardService;
-        this.tradeBoardRepository = tradeBoardRepository;
         this.userService = userService;
         this.reviewService = reviewService;
         this.scheduleRepository = scheduleRepository;
+        this.tradeBoardRepository = tradeBoardRepository;
     }
 
     @GetMapping("/tradeList")
@@ -99,7 +99,6 @@ public class TradeController {
 
     @GetMapping(value = "tradeDetail/{tradeId}")
     public String tradtradeDetaile(@PathVariable(value = "tradeId") Long tradeId, Model model, HttpServletRequest request)  {
-
 
         return "/";
     }

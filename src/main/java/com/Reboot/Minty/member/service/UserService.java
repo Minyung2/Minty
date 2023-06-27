@@ -82,10 +82,7 @@ public class UserService implements UserDetailsService {
         userLocation.setLongitude(longitude);
         userLocation.setAddress(address);
         userLocation.setUser(user);
-        System.out.println(userLocation.getUser());
-        System.out.println(userLocation.getAddress());
-        System.out.println(userLocation.getLatitude());
-        System.out.println(userLocation);
+
         userLocationRepository.save(userLocation);
     }
 
@@ -206,4 +203,5 @@ public class UserService implements UserDetailsService {
     public Page<User> searchUsersByQuery(String query, Pageable pageable) {
         return userRepository.findByNameContainingIgnoreCaseOrNickNameContainingIgnoreCase(query, query, pageable);
     }
+
 }

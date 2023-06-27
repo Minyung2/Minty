@@ -3,16 +3,13 @@ package com.Reboot.Minty.member.entity;
 
 import com.Reboot.Minty.member.constant.Role;
 import com.Reboot.Minty.member.dto.JoinDto;
-import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.ArrayList;
-import java.util.List;
-
 
 @Table(name = "user")
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
@@ -55,9 +52,8 @@ public class User {
     private int exp;
     @Column(nullable = false, name = "balance")
     private int balance;
-    @Column(nullable = false, name = "point", columnDefinition = "INT DEFAULT 0")
+    @Column(nullable = false, name = "point")
     private int point;
-
 
     public User(String name, String email, String ageRange, String mobile, String gender) {
         this.name = name;
@@ -72,10 +68,10 @@ public class User {
         user.setEmail(joinDto.getEmail());
         user.setName(joinDto.getName());
         user.setPassword(passwordEncoder.encode(joinDto.getPassword()));
+        user.setNickName(joinDto.getNickName());
         user.setAgeRange(joinDto.getAgeRange());
         user.setMobile(joinDto.getMobile());
         user.setGender(joinDto.getGender());
-        user.setNickName(joinDto.getNickName());
         user.setRole(Role.USER);
         user.setLevel(1);
         user.setExp(0);
@@ -83,5 +79,4 @@ public class User {
         user.setPoint(0);
         return user;
     }
-
 }
