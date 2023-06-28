@@ -279,4 +279,17 @@ public class TradeBoardController {
             return ResponseEntity.ok(boardId);
         }
     }
+
+    @PostMapping("/api/tradeBoard/deleteRequest")
+    @ResponseBody
+    public ResponseEntity<?> deleteRequest(@RequestBody Long tradeBoardId, HttpSession session){
+        try{
+            Long userId = (Long) session.getAttribute("userId");
+            tradeBoardService.deleteBoardRequest(tradeBoardId,userId);
+            return ResponseEntity.ok().body("해당 물품 삭제를 완료 하였습니다.");
+        }catch (AccessDeniedException e){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
+    }
+
 }
