@@ -79,7 +79,7 @@ public class TradeBoardCustomRepository {
 
     public Slice<TradeBoardDto> getTradeBoardBy(TradeBoardSearchDto searchDto, Pageable pageable) {
         QTradeBoard qtb = QTradeBoard.tradeBoard;
-        BooleanExpression searchExpression = qtb.isNotNull(); // Initial expression to start with
+        BooleanExpression searchExpression = qtb.isNotNull();
 
         // Add search conditions
         BooleanExpression likeExpression = searchByLike(searchDto.getSearchQuery());
