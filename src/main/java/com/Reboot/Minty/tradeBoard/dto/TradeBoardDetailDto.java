@@ -22,6 +22,7 @@ public class TradeBoardDetailDto {
     private Long id;
     private int price;
     private String title;
+    private String content;
     private Timestamp createdDate;
     private Timestamp modifiedDate;
     private int interesting;
@@ -76,6 +77,7 @@ public class TradeBoardDetailDto {
         tradeBoardDetailDto.setModifiedDate(tradeBoard.getModifiedDate());
         tradeBoardDetailDto.setInteresting(tradeBoard.getInteresting());
         tradeBoardDetailDto.setVisit_count(tradeBoard.getVisit_count());
+        tradeBoardDetailDto.setContent(tradeBoard.getContent());
 
         // Create and populate the TopCategoryDto object
         TopCategoryDto topCategoryDto = new TopCategoryDto();

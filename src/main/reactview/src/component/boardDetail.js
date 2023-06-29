@@ -22,9 +22,7 @@ const navigate = useNavigate();
      navigate(`/writeForm/${id}`, { state: { tradeBoard, imageList } });
    };
 
-   const handleDeleteClick = () => {
 
-   }
 
 
 const fetchData = () => {
@@ -43,8 +41,15 @@ const fetchData = () => {
       }
     })
     .catch((error) => {
-      if (error.response && error.response.data && error.response.data.error) {
-        alert(error.response.data.error);
+      if (error.response && error.response.status) {
+        const statusCode = error.response.status;
+        if (statusCode === 403) {
+          alert(error.response.data);
+        } else if (statusCode === 404) {
+          alert(error.response.data);
+        } else {
+          alert(error.response.data);
+        }
       } else {
         console.log(error);
         alert("error");
@@ -52,6 +57,7 @@ const fetchData = () => {
       window.history.back(); // 이전 페이지로 이동
     });
 };
+
 
 
   useEffect(() => {
@@ -94,6 +100,23 @@ const fetchData = () => {
              }
            });
     };
+
+ const handleDeleteClick = () => {
+   axios
+          .post('/api/tradeBoard/deleteRequest', tradeBoard.id, {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrfToken,
+            },
+          }).then((response)=> {
+              alert('삭제 처리 되었습니다.');
+              window.location.href = "/boardList/";
+          })
+           .catch((error) => {
+                  console.log(error);
+                  alert(error);
+                })
+          };
 
   return (
     <Container>

@@ -19,7 +19,6 @@ import com.google.cloud.storage.Storage;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.security.access.AccessDeniedException;
@@ -29,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -72,7 +72,7 @@ public class TradeBoardService {
         TradeBoard tradeBoard = tradeBoardRepository.findById(boardId).orElseThrow(EntityNotFoundException::new);
         TradeBoardDetailDto dto = TradeBoardDetailDto.of(tradeBoard);
         System.out.println("of TradeBoardDetailDto" + dto.getTopCategory());
-        if(dto.getTradeStatus().equals(TradeStatus.BANNED)){
+        if(dto.getTradeStatus().equals(TradeStatus.BANNED)||dto.getTradeStatus().equals(TradeStatus.DELETING)){
             throw new AccessDeniedException("해당 글의 접근 권한이 없습니다.");
         }else{
             return dto;
@@ -248,6 +248,13 @@ public class TradeBoardService {
         storage.delete(BlobId.of(bucketName, objectName));
     }
 
-
-
+    public void deleteBoardRequest(Long tradeBoardId, Long userId){
+        TradeBoard tradeBoard = tradeBoardRepository.findById(tradeBoardId).orElseThrow(EntityNotFoundException::new);
+        Optional<User> user = userRepository.findById(userId);
+        if(tradeBoard.getUser().getId()!=userId||!(user.get().getRole().name().equals("ADMIN"))){
+            new AccessDeniedException("삭제 할 수 있는 권한이 없습니다");
+        }
+        tradeBoard.setStatus(TradeStatus.DELETING);
+        tradeBoardRepository.save(tradeBoard);
+    }
 }

@@ -119,12 +119,13 @@ public class TradeBoardController {
         }
         List<TopCategoryDto> topCategories = categoryService.getTopCategoryList();
         List<SubCategoryDto> subCategories = categoryService.getSubCategoryList();
-        System.out.println(page);
+        System.out.println(">>"+page);
 
-        Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 10);
+        Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 20);
         Slice<TradeBoardDto> tradeBoards = tradeBoardService.getTradeBoard(tradeBoardSearchDto, pageable);
         System.out.println("isEmpty?"+tradeBoards.isEmpty());
         System.out.println("hasNext?"+tradeBoards.hasNext());
+        System.out.println(tradeBoards.getNumber());
         Map<String, Object> response = new HashMap<>();
         response.put("sub", subCategories);
         response.put("top", topCategories);
@@ -278,4 +279,17 @@ public class TradeBoardController {
             return ResponseEntity.ok(boardId);
         }
     }
+
+    @PostMapping("/api/tradeBoard/deleteRequest")
+    @ResponseBody
+    public ResponseEntity<?> deleteRequest(@RequestBody Long tradeBoardId, HttpSession session){
+        try{
+            Long userId = (Long) session.getAttribute("userId");
+            tradeBoardService.deleteBoardRequest(tradeBoardId,userId);
+            return ResponseEntity.ok().body("해당 물품 삭제를 완료 하였습니다.");
+        }catch (AccessDeniedException e){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
+    }
+
 }
