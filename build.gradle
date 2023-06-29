@@ -147,4 +147,8 @@ task copyReactBuildFiles(type: Copy) {
 	from "$frontendDir/build"
 	into "$projectDir/src/main/resources/static"
 
+	delete fileTree("$projectDir/src/main/resources/static") {
+		include '**/*.map' // 소스 맵 파일
+		include '**/*.txt' // 텍스트 파일 (옵션)
+	}
 }
