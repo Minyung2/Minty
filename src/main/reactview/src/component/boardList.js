@@ -259,17 +259,7 @@ const fetchDataWithDelay = () => {
 
   return (
     <Container fluid>
-      <form onSubmit={handleSearch}>
-        <Row className="d-flex justify-content-center">
-          <Col sm={2}>
-            <input type="text" name="searchQuery" value={searchQueryInput} onChange={(e) => setSearchQueryInput(e.target.value)} />
-            <button type="submit">
-              <BiSearch />
-            </button>
-          </Col>
-        </Row>
-      </form>
-      <Row className="justify-content-start">
+      <Row className="justify-content-start filtertext">
         <div>
           <p>필터</p>
           {activeFilters.map((filter, index) => (
@@ -287,9 +277,7 @@ const fetchDataWithDelay = () => {
       </Row>
 
       <Row className="justify-content-end">
-    <Col xs="auto">
-                 <a href="/writeForm" className="ml-auto"><Button>글쓰기</Button></a>
-               </Col>
+
         <Col md={3}>
           <Form.Select className="sortBy" onChange={handleSortByChange}>
             <option value="">정렬 방식</option>
@@ -297,12 +285,29 @@ const fetchDataWithDelay = () => {
             <option value="priceAsc">낮은 가격순</option>
             <option value="priceDesc">높은 가격순</option>
           </Form.Select>
-        </Col>
-
+          <form onSubmit={handleSearch}>
+              <Row className="d-flex ">
+                <Col sm={2}>
+                   <input type="text" className="search-input" name="searchQuery" value={searchQueryInput} onChange={(e) => setSearchQueryInput(e.target.value)} />
+                     <button type="submit">
+                        <BiSearch />
+                     </button>
+                </Col>
+              </Row>
+           </form>
+         </Col>
       </Row>
+
       <Row className="justify-content-end">
+       <Col xs="auto">
+                       <a href="/writeForm" className="ml-auto">
+                           <Button className="writebutton">
+                               <p className="writebuttontext">글쓰기</p>
+                           </Button>
+                       </a>
+                     </Col>
         <Col md={3}>
-         <Form onSubmit={searchByPrice} className="d-flex align-items-center">
+         <Form onSubmit={searchByPrice} className="d-flex align-items-center m-filter">
            <Form.Group className="mr-2">
              <Form.Control
                type="number"
@@ -321,7 +326,7 @@ const fetchDataWithDelay = () => {
                onChange={(e) => setMaxPriceInput(e.target.value)}
              />
            </Form.Group>
-           <Button variant="primary" type="submit" className="mr-2">
+           <Button variant="primary" type="submit" className="mr-2 search" >
              검색
            </Button>
          </Form>
@@ -354,7 +359,7 @@ const fetchDataWithDelay = () => {
                   <div className="loader"></div>
                 </div>
               }
-              endMessage={<h4>게시물이 없습니다.</h4>}
+
               scrollableTarget="scrollable-container"
             >
               <div className="sell-boards-container">

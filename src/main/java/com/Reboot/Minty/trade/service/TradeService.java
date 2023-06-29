@@ -233,4 +233,10 @@ public class TradeService {
         trade.setTradeTime(null);
         tradeRepository.save(trade);
     }
+
+    public void saveTradeLocation(Long tradeId, String tradeLocation){
+        Trade trade = tradeRepository.findById(tradeId).orElseThrow(EntityNotFoundException::new);
+        trade.setTradeLocation(tradeLocation);
+        tradeRepository.save(trade);
+    }
 }
