@@ -3,12 +3,12 @@ package com.Reboot.Minty.member.service;
 import com.Reboot.Minty.manager.entity.ManagerStatistics;
 import com.Reboot.Minty.manager.repository.ManagerStatisticsRepository;
 import com.Reboot.Minty.member.constant.Role;
+import com.Reboot.Minty.member.constant.UserLocationStatus;
 import com.Reboot.Minty.member.entity.User;
 import com.Reboot.Minty.member.entity.UserLocation;
 import com.Reboot.Minty.member.repository.UserLocationRepository;
 import com.Reboot.Minty.member.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -82,7 +82,8 @@ public class UserService implements UserDetailsService {
         userLocation.setLongitude(longitude);
         userLocation.setAddress(address);
         userLocation.setUser(user);
-
+        userLocation.setUserLocationStatus(UserLocationStatus.VERIFIED);
+        userLocation.setRepresentativeYN("Y");
         userLocationRepository.save(userLocation);
     }
 

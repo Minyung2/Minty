@@ -4,6 +4,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/layout}">
 <head>
+
     <style>
     .wrapper {
         width: 100%;
@@ -357,6 +358,25 @@
                 <th:block th:if="${trade.buyerSchedule =='N' && trade.sellerSchedule == 'N'}">
                     <a class="button" th:href="@{/schedule/{tradeId}(tradeId=${trade.id})}">일정 잡기</a>
                 </th:block>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModalFullscreen">거래 장소 잡기</button>
+                <div class="modal fade" id="exampleModalFullscreen" tabindex="-1" aria-labelledby="exampleModalFullscreenSmLabel"
+                     aria-hidden="true" style="display: none;">
+                    <div class="modal-dialog modal-fullscreen">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-4" id="exampleModalFullscreenSmLabel">거래 장소 잡기</h1>
+                                <button type="button" class="btn-submit">찰칵</button>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                ...
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <th:block th:if="${trade.buyerSchedule =='Y' && trade.sellerSchedule == 'Y'}">
                     <a class="button" th:href="@{/changeSchedule/{tradeId}(tradeId=${trade.id})}">일정 변경</a>
@@ -442,8 +462,11 @@
             </form>
         </div>
     </div>
-<script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
-<script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=318f7badeef3abdc331d6d8c3cace014"></script>
+    <script type="text/javascript" th:src="@{/js/mapOption.js}"></script>
+    <script>
     // URL 매개변수에서 reload 값 확인
     const urlParams = new URLSearchParams(window.location.search);
     const shouldReload = urlParams.get('reload');

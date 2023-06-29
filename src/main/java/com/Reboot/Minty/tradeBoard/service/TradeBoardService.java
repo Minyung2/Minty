@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -176,6 +177,7 @@ public class TradeBoardService {
             tradeBoardFormDto.updateEntity(tradeBoard);
             tradeBoard.setThumbnail(uuid);
             tradeBoard.setUser(user);
+            tradeBoard.setModifiedDate(new Timestamp(System.currentTimeMillis()));
             tradeBoard.setUserLocation(userLocation);
             tradeBoardRepository.save(tradeBoard);
 
@@ -228,6 +230,7 @@ public class TradeBoardService {
         }
         tradeBoard.setUser(user);
         tradeBoard.setUserLocation(userLocation);
+        tradeBoard.setModifiedDate(new Timestamp(System.currentTimeMillis()));
         tradeBoardRepository.save(tradeBoard);
 
         // 이미지 파일들
@@ -254,6 +257,7 @@ public class TradeBoardService {
         if(tradeBoard.getUser().getId()!=userId||!(user.get().getRole().name().equals("ADMIN"))){
             new AccessDeniedException("삭제 할 수 있는 권한이 없습니다");
         }
+        tradeBoard.setModifiedDate(new Timestamp(System.currentTimeMillis()));
         tradeBoard.setStatus(TradeStatus.DELETING);
         tradeBoardRepository.save(tradeBoard);
     }
