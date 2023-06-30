@@ -6,13 +6,18 @@ import { Link } from 'react-router-dom';
 function Header({ csrfToken }) {
 
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userRole, setUserRole] = useState('');
     useEffect(() => {
         axios.get(`/api/isLoggedIn`).then((response) => {
-            setIsLoggedIn(response.data);
+            setIsLoggedIn(response.data.LoggedIn);
+            setUserRole(response.data.userRole);
         }).catch((e) => {
             console.error(e);
         })
-    })
+    },[]);
+
+    useEffect(() => {
+    }, [userRole]);
 
     const handleLoginClick = () => {
         setIsLoggedIn(true);
@@ -73,9 +78,12 @@ function Header({ csrfToken }) {
                             마이페이지
                         </a>
                         <p></p>
-                        <a href="/manager" className="nav-link menu-a">
-                            관리자페이지
-                        </a>
+                        {userRole==='ADMIN' ? (<>
+                            <a href="/manager" className="nav-link menu-a">
+                                                        관리자페이지
+                            </a>
+                        </>) : null}
+
                         <p></p>
                         {isLoggedIn ? (
                             <>

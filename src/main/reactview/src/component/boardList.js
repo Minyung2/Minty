@@ -279,7 +279,7 @@ const fetchDataWithDelay = () => {
       </Row>
       <Row className="justify-content-start">
         <Col md={1}>
-           <Form.Select className="sortByLocation">
+           <Form.Select className="searchArea">
              {userLocationList.map((loc) => {
                const addressParts = loc.address.split(" ");
                const dong = addressParts[addressParts.length - 1]; // Extract the last part as the "동" information

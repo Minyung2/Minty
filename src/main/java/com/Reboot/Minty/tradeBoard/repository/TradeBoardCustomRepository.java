@@ -36,8 +36,7 @@ public class TradeBoardCustomRepository {
                 return QTradeBoard.tradeBoard.user.nickName.like("%" + nickNameQuery + "%");
             } else {
                 return QTradeBoard.tradeBoard.title.like("%" + searchQuery + "%")
-                        .or(QTradeBoard.tradeBoard.userLocation.address.like("%" + searchQuery + "%"))
-                        .or(QTradeBoard.tradeBoard.user.nickName.like("%" + searchQuery + "%"));
+                        .or(QTradeBoard.tradeBoard.content.like("%" + searchQuery + "%"));
             }
         }
         return null;

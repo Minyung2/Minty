@@ -162,9 +162,17 @@ public class UserController {
 
     @GetMapping("/api/isLoggedIn")
     @ResponseBody
-    public boolean isLoggedIn(HttpServletRequest request) {
+    public Map<String,Object> isLoggedIn(HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.isAuthenticated() ? true : false;
+        boolean LoggedIn = authentication.isAuthenticated() ? true : false;
+        response.put("LoggedIn", LoggedIn);
+        if(LoggedIn){
+            HttpSession session = request.getSession();
+            String userRole = (String)session.getAttribute("userRole");
+            response.put("userRole",userRole);
+        }
+        return response;
     }
 
     @PostMapping("/sms/send")
