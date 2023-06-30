@@ -28,7 +28,7 @@ function BoardList() {
   const [page, setPage] = useState(pageParam ? Number(pageParam) : 0);
   const [hasMore, setHasMore] = useState(true);
   const { page: pageParam } = useParams();
-
+    const [userLocationList, setUserLocationList] = useState([]);
   const handleSearch = (e) => {
     e.preventDefault();
     const searchQuery = e.target.elements.searchQuery.value;
@@ -160,9 +160,11 @@ function BoardList() {
         }
         let top = [...response.data.top];
         let sub = [...response.data.sub];
+        let locations = [...response.data.userLocationList];
         setTopCategories(top);
         setSubCategories(sub);
-
+        setUserLocationList(locations);
+        console.log(userLocationList);
         const nextPage = page + 1; // Calculate the next page
         setPage(nextPage); // Update the page state to the next page
         setHasMore(response.data.hasNext);
@@ -275,9 +277,18 @@ const fetchDataWithDelay = () => {
           ))}
         </div>
       </Row>
-
+      <Row className="justify-content-start">
+        <Col md={1}>
+           <Form.Select className="sortByLocation">
+             {userLocationList.map((loc) => {
+               const addressParts = loc.address.split(" ");
+               const dong = addressParts[addressParts.length - 1]; // Extract the last part as the "동" information
+               return <option value={loc.address}>{dong}</option>;
+             })}
+           </Form.Select>
+        </Col>
+      </Row>
       <Row className="justify-content-end">
-
         <Col md={3}>
           <Form.Select className="sortBy" onChange={handleSortByChange}>
             <option value="">정렬 방식</option>

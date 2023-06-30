@@ -1,6 +1,7 @@
 package com.Reboot.Minty.tradeBoard.service;
 
 import com.Reboot.Minty.config.ResizeFile;
+import com.Reboot.Minty.member.dto.UserLocationResponseDto;
 import com.Reboot.Minty.member.entity.User;
 import com.Reboot.Minty.member.entity.UserLocation;
 import com.Reboot.Minty.member.repository.UserLocationRepository;
@@ -260,5 +261,11 @@ public class TradeBoardService {
         tradeBoard.setModifiedDate(new Timestamp(System.currentTimeMillis()));
         tradeBoard.setStatus(TradeStatus.DELETING);
         tradeBoardRepository.save(tradeBoard);
+    }
+
+    public List<UserLocationResponseDto> getLogginedLocationList(Long userId){
+        List<UserLocation> userLocations = userLocationRepository.findAllByUserId(userId);
+        List<UserLocationResponseDto> response = userLocations.stream().map(UserLocationResponseDto::of).collect(Collectors.toList());
+        return response;
     }
 }

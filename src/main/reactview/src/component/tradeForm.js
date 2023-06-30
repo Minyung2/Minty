@@ -11,9 +11,28 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
     const [previewImages, setPreviewImages] = useState([]);
     const [error, setError] = useState(null);
     const [activeId, setActiveId] = useState(null);
+    const [content, setContent] = useState();
+    const [contentLength, setContentLength] = useState(0);
+
+    const handleContentChange = (event) => {
+      let value = event.target.value;
+      if (value.length > 5000) {
+        alert("글자수는 5000자까지만 입력할 수 있습니다.");
+        value = value.slice(0, 5000);
+        setContent(value);
+        setContentLength(value.length);
+        return;
+      }
+      setContent(value); // 수정된 부분
+      setContentLength(value.length);
+    };
+
 
     useEffect(() => {
-        console.log(tradeBoard);
+        if (tradeBoard && tradeBoard.content) {
+            setContent(tradeBoard.content);
+            setContentLength(tradeBoard.content.length);
+        }
     }, [tradeBoard]);
 
     useEffect(() => {
@@ -236,13 +255,15 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
                             <Form.Label className="me-2">내용</Form.Label>
                         </Col>
                         <Col md={10}>
-                            <Form.Control
-                                name="content"
-                                as="textarea"
-                                rows={3}
-                                defaultValue={tradeBoard ? tradeBoard.content : ""}
-                                isInvalid={error && error.content}
-                            />
+                           <Form.Control
+                             name="content"
+                             as="textarea"
+                             rows={10}
+                             onChange={handleContentChange}
+                             value={content}
+                             isInvalid={error && error.content}
+                           />
+                           <p style={{ textAlign: "right" }}>{contentLength}/5000</p>
                         </Col>
                     </Form.Group>
                     {error && error.content && <p className="text-danger">{error.content}</p>}

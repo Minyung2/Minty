@@ -3,6 +3,7 @@ package com.Reboot.Minty.tradeBoard.controller;
 import com.Reboot.Minty.categories.CategoryService;
 import com.Reboot.Minty.categories.dto.SubCategoryDto;
 import com.Reboot.Minty.categories.dto.TopCategoryDto;
+import com.Reboot.Minty.member.dto.UserLocationResponseDto;
 import com.Reboot.Minty.tradeBoard.dto.*;
 import com.Reboot.Minty.tradeBoard.repository.TradeBoardRepository;
 import com.Reboot.Minty.tradeBoard.service.TradeBoardService;
@@ -94,6 +95,7 @@ public class TradeBoardController {
     })
     @ResponseBody
     public Map<String, Object> getBoardList(
+            HttpServletRequest request,
             TradeBoardSearchDto tradeBoardSearchDto,
             @PathVariable(value = "page", required = false) Optional<Integer> page,
             @RequestParam(value = "subCategoryId", required = false) Optional<Long> subCategoryId,
@@ -119,14 +121,17 @@ public class TradeBoardController {
         }
         List<TopCategoryDto> topCategories = categoryService.getTopCategoryList();
         List<SubCategoryDto> subCategories = categoryService.getSubCategoryList();
-        System.out.println(">>"+page);
 
+        HttpSession session = request.getSession();
+        Long userId = (Long)session.getAttribute("userId");
+        List<UserLocationResponseDto> userLocationList = tradeBoardService.getLogginedLocationList(userId);
         Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 20);
         Slice<TradeBoardDto> tradeBoards = tradeBoardService.getTradeBoard(tradeBoardSearchDto, pageable);
         System.out.println("isEmpty?"+tradeBoards.isEmpty());
         System.out.println("hasNext?"+tradeBoards.hasNext());
         System.out.println(tradeBoards.getNumber());
         Map<String, Object> response = new HashMap<>();
+        response.put("userLocationList",userLocationList);
         response.put("sub", subCategories);
         response.put("top", topCategories);
         response.put("tradeBoards", tradeBoards.getContent());

@@ -164,7 +164,7 @@ const fetchData = () => {
       <br />
       <br />
       <Row className="board-content">
-        <Col>{tradeBoard.content}</Col>
+        <Col style={{ whiteSpace: "pre-wrap" }}>{tradeBoard.content}</Col>
       </Row>
       <br/><br/>
       <Row>

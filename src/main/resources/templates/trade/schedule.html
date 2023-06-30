@@ -459,57 +459,55 @@ $('#calendar').on('click', '.fc-day', function() {
     $('#selected-date-display').text('거래 희망 날짜: ' + selectedDate);
 });
 
-$(document).ready(function () {
-        $("#add-input-button").click(function () {
-          var inputElement1 = $(
-            '<input class="timer" type="time" name="time" id="time" oninput="updateText()">'
-          ); // 첫 번째 input 요소 생성
-          var textElement = $("<span> ~ </span>"); // "~" 글자 요소 생성
-          var inputElement2 = $(
-            '<input class="timer" type="time" name="time" id="time" oninput="updateText()">'
-          ); // 두 번째 input 요소 생성
+function updateTradeSchedule() {
+    var selectedDate = $('#selected-date').text();
+    var selectedTime = getSelectedTime();
+    var tradeId = $('input[name="tradeId"]').val(); // tradeId 값을 가져옴
 
-          var container = $("#input-container");
-          container.append(inputElement1); // 첫 번째 input 요소 추가
-          container.append(textElement); // "~" 글자 추가
-          container.append(inputElement2); // 두 번째 input 요소 추가
-          container.append("<br>"); //
-        });
+    var formattedDate = moment(selectedDate, 'YYYY-MM-DD').format('YYYY-MM-DD');
+    var formattedTime = moment(selectedTime, 'HH:mm').format('HH:mm');
 
-        $("#add-input-button2").click(function () {
-          var inputElement = $(
-            '<input class="timer" type="time" name="time" id="time" oninput="updateText()">'
-          ); // 첫 번째 input 요소 생성
-          var textElement = $("<span> ~ </span>"); // "~" 글자 요소 생성
-          var inputElement2 = $(
-            '<input class="timer" type="time" name="time" id="time" oninput="updateText()">'
-          ); // 두 번째 input 요소 생성
+    console.log('선택된 날짜:', selectedDate);
+    console.log('선택된 시간:', selectedTime);
 
-          var container = $("#input-container");
-          container.append(inputElement1); // 첫 번째 input 요소 추가
-          container.append(textElement); // "~" 글자 추가
-          container.append(inputElement2); // 두 번째 input 요소 추가
-          container.append("<br>"); //
-        });
+    // 선택된 날짜와 시간을 폼 데이터로 설정
+    var formData = new FormData();
+    formData.append('tradeId', tradeId); // tradeId 값을 추가
+    formData.append('tradeDate', selectedDate);
+    formData.append('tradeTime', selectedTime);
 
-        $(".spin").click(function () {
-            $(this).toggleClass("selected");
-        });
+    // CSRF 토큰과 헤더 설정
+    var token = $("meta[name='_csrf']").attr("content");
+    var header = $("meta[name='_csrf_header']").attr("content");
+    $.ajaxSetup({
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader(header, token);
+        }
+    });
 
-        $(".edit").click(function () {
-          $(this).addClass("hd");
-          $(".spin").removeClass("hd");
-          $(".memo").removeClass("hd");
-          $(".edit2").removeClass("hd");
-        });
+    // AJAX를 사용하여 폼 데이터를 서버로 전송
+    $.ajax({
+        url: $('#tradeForm').attr('action'),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            console.log('데이터 전송 성공');
+            console.log(response);
+            window.location.href = response;
+        },
+        error: function(xhr, status, error) {
+            console.log(error);
+        }
+    });
+}
 
-        $(".edit2").click(function () {
-          $(this).addClass("hd");
-          $(".spin").addClass("hd");
-          $(".edit").removeClass("hd");
-          $(".memo").addClass("hd");
-        });
-      });
+$('#tradeForm').submit(function(e) {
+    e.preventDefault();
+
+    updateTradeSchedule();
+});
 </script>
 <script type="text/javascript" th:src="@{/js/weather.js}"></script>
 </body>

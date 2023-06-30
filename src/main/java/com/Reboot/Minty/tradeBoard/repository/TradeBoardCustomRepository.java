@@ -46,7 +46,7 @@ public class TradeBoardCustomRepository {
     private OrderSpecifier<?> sortingItems(String sortBy) {
         Order order = Order.DESC;
         if (Objects.isNull(sortBy)) {
-            return OrderByNull.getDefault();
+            return new OrderSpecifier<>(order, QTradeBoard.tradeBoard.modifiedDate);
         }
         if (StringUtils.equals("itemDesc", sortBy)) {
             return new OrderSpecifier<>(order, QTradeBoard.tradeBoard.modifiedDate);
@@ -57,7 +57,7 @@ public class TradeBoardCustomRepository {
         if (StringUtils.equals("priceDesc", sortBy)) {
             return new OrderSpecifier<>(order, QTradeBoard.tradeBoard.price);
         }
-        return null;
+        return new OrderSpecifier<>(order, QTradeBoard.tradeBoard.modifiedDate);
     }
 
     private BooleanExpression searchByCategory(Long subCategoryId) {
@@ -104,6 +104,7 @@ public class TradeBoardCustomRepository {
 
         // Add sorting
         OrderSpecifier<?> orderSpecifier = sortingItems(searchDto.getSortBy());
+
 
         List<TradeBoardDto> tradeBoards = queryFactory.select(Projections.constructor(TradeBoardDto.class,
                         qtb.id, qtb.price, qtb.title, qtb.createdDate, qtb.modifiedDate, qtb.interesting, qtb.visit_count, qtb.thumbnail,
