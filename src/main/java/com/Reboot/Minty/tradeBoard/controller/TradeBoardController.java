@@ -103,6 +103,7 @@ public class TradeBoardController {
             @RequestParam(value = "minPrice", required = false) Optional<Integer> minPrice,
             @RequestParam(value = "maxPrice", required = false) Optional<Integer> maxPrice,
             @RequestParam(value = "sortBy", required = false) Optional<String> sortBy
+
     ) {
         if (subCategoryId.isPresent()) {
             tradeBoardSearchDto.setSubCategoryId(subCategoryId.get());

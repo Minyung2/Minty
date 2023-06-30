@@ -1,18 +1,18 @@
 package com.Reboot.Minty.tradeBoard.repository;
 
-import com.Reboot.Minty.categories.dto.SubCategoryDto;
 import com.Reboot.Minty.tradeBoard.constant.TradeStatus;
 import com.Reboot.Minty.tradeBoard.dto.TradeBoardDto;
 import com.Reboot.Minty.tradeBoard.dto.TradeBoardSearchDto;
 import com.Reboot.Minty.tradeBoard.entity.QTradeBoard;
-import com.Reboot.Minty.utils.OrderByNull;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 import org.thymeleaf.util.StringUtils;
 
@@ -77,6 +77,13 @@ public class TradeBoardCustomRepository {
         return null;
     }
 
+    private BooleanExpression searchArea(String searchArea){
+        if(searchArea != null){
+            return QTradeBoard.tradeBoard.userLocation.address.eq(searchArea);
+        }
+        return null;
+    }
+
     public Slice<TradeBoardDto> getTradeBoardBy(TradeBoardSearchDto searchDto, Pageable pageable) {
         QTradeBoard qtb = QTradeBoard.tradeBoard;
 
@@ -99,6 +106,12 @@ public class TradeBoardCustomRepository {
         if (priceExpression != null) {
             searchExpression = searchExpression.and(priceExpression);
         }
+
+        BooleanExpression areaExpression = searchArea(searchDto.getSearchArea());
+        if(areaExpression != null){
+            searchExpression = searchExpression.and(areaExpression);
+        }
+
         System.out.println(searchExpression);
 
         // Add sorting

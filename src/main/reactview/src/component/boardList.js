@@ -29,6 +29,9 @@ function BoardList() {
   const [hasMore, setHasMore] = useState(true);
   const { page: pageParam } = useParams();
     const [userLocationList, setUserLocationList] = useState([]);
+    const [searchArea, setSearchArea] = useState('');
+
+
   const handleSearch = (e) => {
     e.preventDefault();
     const searchQuery = e.target.elements.searchQuery.value;
@@ -50,6 +53,11 @@ function BoardList() {
     fetchData();
   };
 
+     const handleAreaSearch = (e) => {
+       const areaValue = e.target.value;
+       setSearchArea(areaValue);
+       setPage(0);
+     };
 
 
   const handleSortByChange = (e) => {
@@ -145,6 +153,7 @@ function BoardList() {
     if (sortBy) {
       endpoint += `/sortBy/${sortBy}`;
     }
+
     endpoint += `/page/${page}`;
 
     console.log(endpoint);
@@ -164,6 +173,11 @@ function BoardList() {
         setTopCategories(top);
         setSubCategories(sub);
         setUserLocationList(locations);
+        console.log("어드레스"+locations);
+        if (!searchArea && userLocationList.length > 0) {
+              setSearchArea(userLocationList[0].address);
+        }
+        console.log("서치지역"+searchArea);
         console.log(userLocationList);
         const nextPage = page + 1; // Calculate the next page
         setPage(nextPage); // Update the page state to the next page
@@ -279,13 +293,13 @@ const fetchDataWithDelay = () => {
       </Row>
       <Row className="justify-content-start">
         <Col md={1}>
-           <Form.Select className="searchArea">
-             {userLocationList.map((loc) => {
-               const addressParts = loc.address.split(" ");
-               const dong = addressParts[addressParts.length - 1]; // Extract the last part as the "동" information
-               return <option value={loc.address}>{dong}</option>;
-             })}
-           </Form.Select>
+          <Form.Select className="searchArea" onChange={handleAreaSearch}>
+            {userLocationList.map((loc, index) => {
+              const addressParts = loc.address.split(" ");
+              const dong = addressParts[addressParts.length - 1];
+              return <option key={index} value={loc.address}>{dong}</option>;
+            })}
+          </Form.Select>
         </Col>
       </Row>
       <Row className="justify-content-end">
