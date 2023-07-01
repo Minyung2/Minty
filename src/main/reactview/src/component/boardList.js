@@ -129,64 +129,61 @@ function BoardList() {
     fetchData();
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [subCategoryId, searchQuery, minPrice, maxPrice, sortBy]);
+    useEffect(() => {
+            console.log("setSearchArea?", searchArea);
+           fetchData();
+    }, [subCategoryId, searchQuery, minPrice, maxPrice, sortBy, searchArea]);
 
+ const fetchData = async () => {
+   let endpoint = '/api/boardList';
+   if (searchArea) {
+     endpoint += `/searchArea/${searchArea}`
+   }
+   if (subCategoryId) {
+     endpoint += `/category/${subCategoryId}`;
+   }
+   if (searchQuery) {
+     endpoint += `/searchQuery/${searchQuery}`;
+   }
+   if (minPrice) {
+     endpoint += `/minPrice/${minPrice}`;
+   }
+   if (maxPrice) {
+     endpoint += `/maxPrice/${maxPrice}`;
+   }
+   if (sortBy) {
+     endpoint += `/sortBy/${sortBy}`;
+   }
 
+   endpoint += `/page/${page}`;
 
-  const fetchData = async () => {
-    let endpoint = '/api/boardList';
+   console.log(endpoint);
+   await axios
+     .get(endpoint)
+     .then((response) => {
+       if (page === 0 && endpoint != `/api/boardList/page/0`) {
+         // If it's the first page, reset the tradeBoards state
+         setTradeBoards(response.data.tradeBoards);
+       } else {
+         // If it's not the first page, append the new tradeBoards to the existing state
+         setTradeBoards((prevBoards) => [...prevBoards, ...response.data.tradeBoards]);
+       }
+       let top = [...response.data.top];
+       let sub = [...response.data.sub];
+       let locations = [...response.data.userLocationList];
+       setTopCategories(top);
+       setSubCategories(sub);
+       setUserLocationList(locations);
 
-    if (subCategoryId) {
-      endpoint += `/category/${subCategoryId}`;
-    }
-    if (searchQuery) {
-      endpoint += `/searchQuery/${searchQuery}`;
-    }
-    if (minPrice) {
-      endpoint += `/minPrice/${minPrice}`;
-    }
-    if (maxPrice) {
-      endpoint += `/maxPrice/${maxPrice}`;
-    }
-    if (sortBy) {
-      endpoint += `/sortBy/${sortBy}`;
-    }
-
-    endpoint += `/page/${page}`;
-
-    console.log(endpoint);
-    await axios
-      .get(endpoint)
-      .then((response) => {
-        if (page === 0 && endpoint != `/api/boardList/page/0`) {
-          // If it's the first page, reset the tradeBoards state
-          setTradeBoards(response.data.tradeBoards);
-        } else {
-          // If it's not the first page, append the new tradeBoards to the existing state
-          setTradeBoards((prevBoards) => [...prevBoards, ...response.data.tradeBoards]);
-        }
-        let top = [...response.data.top];
-        let sub = [...response.data.sub];
-        let locations = [...response.data.userLocationList];
-        setTopCategories(top);
-        setSubCategories(sub);
-        setUserLocationList(locations);
-        console.log("어드레스"+locations);
-        if (!searchArea && userLocationList.length > 0) {
-              setSearchArea(userLocationList[0].address);
-        }
-        console.log("서치지역"+searchArea);
-        console.log(userLocationList);
-        const nextPage = page + 1; // Calculate the next page
-        setPage(nextPage); // Update the page state to the next page
-        setHasMore(response.data.hasNext);
-      })
-      .catch((error) => {
-        console.error('Error fetching data:', error);
-      });
-  };
+       console.log(userLocationList);
+       const nextPage = page + 1; // Calculate the next page
+       setPage(nextPage); // Update the page state to the next page
+       setHasMore(response.data.hasNext);
+     })
+     .catch((error) => {
+       console.error('Error fetching data:', error);
+     });
+ };
 
 
 
@@ -293,13 +290,13 @@ const fetchDataWithDelay = () => {
       </Row>
       <Row className="justify-content-start">
         <Col md={1}>
-          <Form.Select className="searchArea" onChange={handleAreaSearch}>
-            {userLocationList.map((loc, index) => {
-              const addressParts = loc.address.split(" ");
-              const dong = addressParts[addressParts.length - 1];
-              return <option key={index} value={loc.address}>{dong}</option>;
-            })}
-          </Form.Select>
+         <Form.Select className="searchArea" onChange={handleAreaSearch}>
+           {userLocationList.map((loc) => {
+             const addressParts = loc.address.split(" ");
+             const dong = addressParts[addressParts.length - 1]; // Extract the last part as the "동" information
+             return <option value={loc.address}>{dong}</option>;
+           })}
+         </Form.Select>
         </Col>
       </Row>
       <Row className="justify-content-end">
@@ -417,7 +414,7 @@ const fetchDataWithDelay = () => {
                           </Col>
                         </Row>
                         <div className="sell-board-ul">
-                          <span> {board.userLocation.address}</span>
+                          <span> {board.sellArea}</span>
                         </div>
                       </Nav.Link>
                     </div>

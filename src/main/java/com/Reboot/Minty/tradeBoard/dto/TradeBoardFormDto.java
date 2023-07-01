@@ -32,7 +32,7 @@ public class TradeBoardFormDto {
 
     private User user;
     private int boardType;
-    private UserLocation userLocation;
+    private String sellArea;
 
     private static ModelMapper modelMapper =  new ModelMapper();
     public static TradeBoard toEntity(TradeBoardFormDto dto) {

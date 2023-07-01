@@ -96,11 +96,9 @@ public class TradeBoardService {
         String uuid = UUID.randomUUID().toString();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("User not found"));
-        UserLocation userLocation = userLocationRepository.findByUserId(user.getId());
         TradeBoard tradeBoard = tradeBoardFormDto.toEntity(tradeBoardFormDto);
         tradeBoard.setStatus(TradeStatus.SELL);
         tradeBoard.setUser(user);
-        tradeBoard.setUserLocation(userLocation);
         MultipartFile firstFile = mf.get(0);
         String thumbnail = uuid;
         tradeBoard.setThumbnail(thumbnail);
@@ -179,7 +177,6 @@ public class TradeBoardService {
             tradeBoard.setThumbnail(uuid);
             tradeBoard.setUser(user);
             tradeBoard.setModifiedDate(new Timestamp(System.currentTimeMillis()));
-            tradeBoard.setUserLocation(userLocation);
             tradeBoardRepository.save(tradeBoard);
 
             // 이미지 리스트 기존 파일 삭제, DB 삭제
@@ -220,7 +217,6 @@ public class TradeBoardService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("User not found"));
         TradeBoard tradeBoard =  tradeBoardRepository.findById(boardId).orElseThrow(EntityNotFoundException::new);
-        UserLocation userLocation = userLocationRepository.findByUserId(userId);
         tradeBoardFormDto.updateEntity(tradeBoard);
         // 순서 바뀌었을 때
         if(firstFile!=tradeBoard.getThumbnail()){
@@ -230,7 +226,6 @@ public class TradeBoardService {
             tradeBoard.setThumbnail(imageUrls.get(0));
         }
         tradeBoard.setUser(user);
-        tradeBoard.setUserLocation(userLocation);
         tradeBoard.setModifiedDate(new Timestamp(System.currentTimeMillis()));
         tradeBoardRepository.save(tradeBoard);
 

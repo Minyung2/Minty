@@ -1,18 +1,25 @@
-import { Button, Form, Row, Col } from 'react-bootstrap';
+import { Button, Form, Row, Col, Modal } from 'react-bootstrap';
+import DaumPostcode from 'react-daum-postcode';
 import { useRef, useState, useEffect } from "react";
 import axios from 'axios';
+import { BiSearch } from 'react-icons/bi';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Draggable, SortablePhoto } from './sortablePhoto';
 import '../css/tradeForm.css';
 
-function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoard, imageList }) {
+function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoard, imageList, addressCode }) {
     const selectFile = useRef(null);
     const [previewImages, setPreviewImages] = useState([]);
     const [error, setError] = useState(null);
     const [activeId, setActiveId] = useState(null);
     const [content, setContent] = useState();
     const [contentLength, setContentLength] = useState(0);
+    const [showPostCodeModal, setShowPostCodeModal] = useState(false);
+    const [sellArea, setSellArea] = useState('');
+    const [searchAddressInput, setSearchAddressInput] = useState('');
+    const [searchAddress , setSearchAddress] = useState('');
+    const [addressResults, setAddressResults] = useState([]);
 
     const handleContentChange = (event) => {
       let value = event.target.value;
@@ -29,7 +36,8 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
 
 
     useEffect(() => {
-        if (tradeBoard && tradeBoard.content) {
+        if (tradeBoard && tradeBoard.content && tradeBoard.sellArea) {
+            setSellArea(tradeBoard.sellArea);
             setContent(tradeBoard.content);
             setContentLength(tradeBoard.content.length);
         }
@@ -118,12 +126,14 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
         const title = form.elements.title.value;
         const price = form.elements.price.value;
         const content = form.elements.content.value;
-
+        const area = form.elements.sellArea.value;
         formData.append("title", title);
         formData.append("price", price);
         formData.append("content", content);
         formData.append('topCategory', selectedTopCateId);
         formData.append('subCategory', selectedSubCateId);
+        formData.append('sellArea', sellArea);
+
 
         previewImages.forEach((image, index) => {
             formData.append("fileUpload", image.file);
@@ -157,6 +167,95 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
                 }
             });
     };
+
+    const handlePostCodeCloseModal = () => {
+        setShowPostCodeModal(false);
+    };
+
+    const setShowPostCode = () => {
+        setShowPostCodeModal(true);
+    };
+    const handleAddressChange = (data) => {
+        // Extract the required address information
+        console.log(data);
+        const sido = data.sido; // 시/도
+        console.log(sido);
+        const sigungu = data.sigungu; // 시/군/구
+        const dong = data.dong; // 동
+        const fullAddress = `${sido} ${sigungu} ${dong}`; // Combine the address parts
+        console.log(fullAddress);
+        // Perform any additional processing with the address if needed
+
+        // Set the address to the desired value
+        // For example, you can set it to a form field or update the state variable
+
+        setShowPostCodeModal(false);
+      };
+
+    const handleAddressSearch = (e) => {
+      e.preventDefault();
+      const keyword = e.target.elements.searchAddress.value;
+      setSearchAddress(keyword);
+
+      let filteredData;
+      if (/\d/.test(keyword)) {
+        const regex = new RegExp(`${keyword}`, 'i');
+        filteredData = addressCode.filter((item) => {
+          return regex.test(`${item.sido} ${item.sigungu} ${item.dong}`);
+        });
+      } else {
+
+        const pureKeyword = keyword.replace(/\d+/g, '');
+        const regex = new RegExp(`${pureKeyword}`, 'i');
+        filteredData = addressCode.filter((item) => {
+          const pureDong = item.dong.replace(/\d+/g, '');
+          return regex.test(`${item.sido} ${item.sigungu} ${pureDong}`);
+        });
+      }
+
+      const formattedResults = filteredData.map((result) => {
+        return `${result.sido} ${result.sigungu} ${result.dong}`;
+      });
+
+      setAddressResults(formattedResults);
+    };
+
+
+     const handleCurrentLocationClick = async (e) => {
+        e.preventDefault();
+       if (navigator.geolocation) {
+         navigator.geolocation.getCurrentPosition(
+           async (position) => {
+             const latitude = position.coords.latitude;
+             const longitude = position.coords.longitude;
+
+             const response = await fetch('/api/kakao/location', {
+               method: 'POST',
+               body: JSON.stringify({ latitude, longitude }),
+               headers: {
+                 'Content-Type': 'application/json',
+                 "X-CSRF-TOKEN": csrfToken,
+               },
+             });
+
+             if (response.ok) {
+               const data = await response.json();
+               console.log(data);
+               const administrativeDistrict = data.documents[1].address_name;
+               setSellArea(administrativeDistrict);
+             } else {
+               console.log('Failed to get location from backend:', response.status);
+             }
+           },
+           (error) => {
+             console.log('Failed to get the current location:', error);
+           }
+         );
+       } else {
+         console.log('Geolocation is not supported by this browser.');
+       }
+     };
+
 
     return (
         <Row className="justify-content-center trade-container">
@@ -249,6 +348,39 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
                         </Col>
                     </Form.Group>
                     {error && error.price && <p className="text-danger">{error.price}</p>}
+                   <Form.Group className="mb-3" controlId="exampleForm.ControlSellArea">
+                     <Row>
+                       <Col md={2}>
+                         <Form.Label className="me-2">
+                           거래 희망 지역
+                         </Form.Label>
+                       </Col>
+                       <Col md={10}>
+                         <Row>
+                           <Col md={6} className="d-flex justify-content-between">
+                             <button className="areaButton" onClick={handleCurrentLocationClick}>
+                                           현재 위치
+                            </button>
+                             <button className="areaButton">나의 인증 위치 목록</button>
+                             <button className="areaButton" onClick={setShowPostCode}>주소 검색</button>
+                           </Col>
+                         </Row>
+                         <br/>
+                         <Row>
+                           <Col md={12}>
+                             <Form.Control
+                               type="text"
+                               name="sellArea"
+                               value={sellArea}
+                               isInvalid={error && error.title}
+                               readOnly
+                               onChange={(e) => setSellArea(e.target.value)}
+                             />
+                           </Col>
+                         </Row>
+                       </Col>
+                     </Row>
+                   </Form.Group>
 
                     <Form.Group className="mb-3 d-flex" controlId="exampleForm.ControlTextarea1">
                         <Col md={2}>
@@ -268,7 +400,42 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
                     </Form.Group>
                     {error && error.content && <p className="text-danger">{error.content}</p>}
                     <Button as="input" type="submit" value="등록" />
+
                 </Form >
+                <Modal show={showPostCodeModal} onHide={handlePostCodeCloseModal} backdrop="static" keyboard={false}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>주소 검색</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <form onSubmit={handleAddressSearch}>
+                        <Row className="d-flex">
+                            <Col sm={12}>
+                               <input type="text" placeholder="시,도 / 시군구 / 동 중 하나를 검색해주세요" className="search-input" name="searchAddress" value={searchAddressInput} onChange={(e) => setSearchAddressInput(e.target.value)} />
+                                 <button type="submit">
+                                    <BiSearch />
+                                 </button>
+                            </Col>
+                        </Row>
+                        <Row className="addressResults">
+                          <ul className="list-group addressResults-list">
+                            {addressResults.map((result, index) => (
+                              <li key={index} className="list-group-item">
+                                <button type="button" className="btn btn-link address-link" onClick={() => { setSellArea(result); handlePostCodeCloseModal(); }}>
+                                  {result}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </Row>
+
+                        </form>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={handlePostCodeCloseModal}>
+                            닫기
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
             </Col >
         </Row >
     );

@@ -68,14 +68,13 @@ public class TradeController {
         Long userId = (Long)session.getAttribute("userId");
         User writerId = userService.getUserInfoById(userId);
         Trade trade = tradeService.getTradeDetail(tradeId);
+        String sellArea = trade.getBoardId().getSellArea();
         String role = tradeService.getRoleForTrade(tradeId, userId);
         User buyer= userService.getUserInfoById(trade.getBuyerId().getId());
         User seller= userService.getUserInfoById(trade.getSellerId().getId());
         Review review = reviewService.getReviewByTradeIdAndWriterId(trade,writerId);
         boolean isExistReview = reviewService.existsByIdAndWriterId(trade,writerId);
-        UserLocation userLocation = userLocationRepository.findByUserId(userId);
-
-        model.addAttribute("userLocation",userLocation);
+        model.addAttribute("sellArea", sellArea);
         model.addAttribute("userId", userId);
         model.addAttribute("trade", trade);
         model.addAttribute("role",role);

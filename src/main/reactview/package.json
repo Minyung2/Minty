@@ -27,6 +27,7 @@
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",
     "react-infinite-scroll-component": "^6.1.0",
+    "react-kakao-maps": "^0.0.13",
     "react-lazy-load-image-component": "^1.6.0",
     "react-router-dom": "^6.11.2",
     "react-scripts": "5.0.1",

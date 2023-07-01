@@ -67,9 +67,8 @@ public class TradeBoard {
     @JoinColumn(name = "user", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_location")
-    private UserLocation userLocation;
+    @Column(nullable = false)
+    private String sellArea;
 
     @Enumerated(EnumType.STRING)
     private TradeStatus status;

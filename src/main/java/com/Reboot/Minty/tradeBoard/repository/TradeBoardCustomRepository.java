@@ -59,6 +59,14 @@ public class TradeBoardCustomRepository {
         return new OrderSpecifier<>(order, QTradeBoard.tradeBoard.modifiedDate);
     }
 
+    private BooleanExpression searchByArea(String searchArea){
+        if (searchArea != null){
+            System.out.println("does it reach CustomRepo?");
+            return QTradeBoard.tradeBoard.sellArea.eq(searchArea);
+        }
+        return null;
+    }
+
     private BooleanExpression searchByCategory(Long subCategoryId) {
         if (subCategoryId != null) {
             return QTradeBoard.tradeBoard.subCategory.id.eq(subCategoryId);
@@ -77,12 +85,7 @@ public class TradeBoardCustomRepository {
         return null;
     }
 
-    private BooleanExpression searchArea(String searchArea){
-        if(searchArea != null){
-            return QTradeBoard.tradeBoard.userLocation.address.eq(searchArea);
-        }
-        return null;
-    }
+
 
     public Slice<TradeBoardDto> getTradeBoardBy(TradeBoardSearchDto searchDto, Pageable pageable) {
         QTradeBoard qtb = QTradeBoard.tradeBoard;
@@ -107,7 +110,7 @@ public class TradeBoardCustomRepository {
             searchExpression = searchExpression.and(priceExpression);
         }
 
-        BooleanExpression areaExpression = searchArea(searchDto.getSearchArea());
+        BooleanExpression areaExpression = searchByArea(searchDto.getSearchArea());
         if(areaExpression != null){
             searchExpression = searchExpression.and(areaExpression);
         }
@@ -122,7 +125,7 @@ public class TradeBoardCustomRepository {
                         qtb.id, qtb.price, qtb.title, qtb.createdDate, qtb.modifiedDate, qtb.interesting, qtb.visit_count, qtb.thumbnail,
                         qtb.topCategory.id, qtb.topCategory.name, qtb.subCategory.id, qtb.subCategory.name,
                         qtb.user.id, qtb.user.email, qtb.user.nickName,
-                        qtb.userLocation.id, qtb.userLocation.address,
+                        qtb.sellArea,
                         qtb.status))
                 .from(qtb)
                 .where(searchExpression)

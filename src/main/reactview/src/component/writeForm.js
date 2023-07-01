@@ -18,6 +18,7 @@ function WriteForm(props) {
     const [tradeBoard, setTradeBoard] = useState(null);
     const [imageList, setImageList] = useState([]);
     const [state, setState] = useState({});
+    const [addressCode, setAddressCode] = useState([]);
 
      const location = useLocation();
     useEffect(() => {
@@ -39,9 +40,11 @@ function WriteForm(props) {
         axios.get(`/api/writeForm`).then((response) => {
             let top = [...response.data.top];
             let sub = [...response.data.sub];
+            let codes = [...response.data.addressCode];
             setCsrfToken(response.data.csrfToken);
             setTradeTopCate(top);
             setTradeSubCate(sub);
+            setAddressCode(codes);
         })
             .catch((error) => {
                 console.error('Error fetching data:', error);
@@ -191,6 +194,7 @@ function WriteForm(props) {
                         csrfToken={csrfToken}
                         tradeBoard={tradeBoard}
                         imageList={imageList}
+                        addressCode={addressCode}
                     />
                 )}
                 {(subCategory === "emergencyJob" && targetCategory === "tradeBoard") && <JobForm csrfToken={csrfToken}/>}
