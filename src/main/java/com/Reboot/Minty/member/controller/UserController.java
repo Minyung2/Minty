@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -132,11 +133,14 @@ public class UserController {
         }
     }
 
+    @Value("${kaKao-jsKey}")
+    private String kaKaoKey;
 
     @GetMapping("/map")
-    public String getMap(HttpSession session) {
+    public String getMap(HttpSession session,Model model) {
         User user = (User)session.getAttribute("user");
         session.setAttribute("user",user);
+        model.addAttribute("kaKaoKey",kaKaoKey);
         return "map/map";
     }
 

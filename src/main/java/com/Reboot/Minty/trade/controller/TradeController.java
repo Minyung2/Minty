@@ -16,6 +16,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -62,6 +63,9 @@ public class TradeController {
         return "trade/tradeList";
     }
 
+    @Value("${kaKao-jsKey}")
+    private String kaKaoKey;
+
     @GetMapping(value = "/trade/{tradeId}")
     public String trade(@PathVariable(value = "tradeId") Long tradeId, Model model, HttpServletRequest request)  {
         HttpSession session = request.getSession();
@@ -74,6 +78,7 @@ public class TradeController {
         User seller= userService.getUserInfoById(trade.getSellerId().getId());
         Review review = reviewService.getReviewByTradeIdAndWriterId(trade,writerId);
         boolean isExistReview = reviewService.existsByIdAndWriterId(trade,writerId);
+        model.addAttribute("kaKaoKey",kaKaoKey);
         model.addAttribute("sellArea", sellArea);
         model.addAttribute("userId", userId);
         model.addAttribute("trade", trade);
