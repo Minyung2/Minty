@@ -25,15 +25,7 @@ public class MainController {
         }
         return "main";
     }
-    @Value("${kaKao-jsKey}")
-    private String kaKaoKey;
-    @RequestMapping("/map")
-    public String getMap(Model model) {
-        System.out.println("here?");
-        System.out.println(kaKaoKey);
-        model.addAttribute("kaKaoKey",kaKaoKey);
-        return "map/map";
-    }
+
 
 
 }
