@@ -13,7 +13,15 @@
 </style>
 <body>
 <h2>Reboot</h2>
-
+<script th:inline="javascript">
+        $(document).ready(function(){
+            var errorMessage = [[${errorMessage}]];
+            if(errorMessage != null){
+                alert(errorMessage);
+                history.back();
+            }
+        });
+</script>
     <form action="saveLocation"  role="form" method="post"  th:object="${joinLocationDto}">
     <div class="map_wrap">
         <div id="map" style="width:100%;height:100%;"></div>

@@ -7,7 +7,7 @@ import BoardDetail from './component/boardDetail';
 import JobList from './component/jobList';
 import axios from 'axios';
 import './css/global.css';
-import { Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 function App() {
     const [csrfToken, setCsrfToken] = useState('');
 

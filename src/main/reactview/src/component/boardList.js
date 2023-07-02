@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Pagination from './pagination';
-import { Button, Container, Row, Col, Nav, Form } from 'react-bootstrap';
+import { Button, Container, Row, Col, Nav, Form, Modal } from 'react-bootstrap';
 import '../css/boardList.css';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -30,7 +30,7 @@ function BoardList() {
   const { page: pageParam } = useParams();
     const [userLocationList, setUserLocationList] = useState([]);
     const [searchArea, setSearchArea] = useState('');
-
+    const [showUserLocationModal,setShowUserLocationModal] = useState(false);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -269,6 +269,15 @@ const fetchDataWithDelay = () => {
     }
   };
 
+   const setShowUserLocationList = () => {
+          setShowUserLocationModal(true);
+      }
+
+      const handleUserLocationCloseModal = () => {
+          setShowUserLocationModal(false);
+      }
+
+
 
   return (
     <Container fluid>
@@ -289,7 +298,7 @@ const fetchDataWithDelay = () => {
         </div>
       </Row>
       <Row className="justify-content-start">
-        <Col md={1}>
+        <Col md={2}>
          <Form.Select className="searchArea" onChange={handleAreaSearch}>
            {userLocationList.map((loc) => {
              const addressParts = loc.address.split(" ");
@@ -427,6 +436,37 @@ const fetchDataWithDelay = () => {
           )}
         </Col>
       </Row>
+        <Modal show={showUserLocationModal} onHide={handleUserLocationCloseModal} backdrop="static" keyboard={false}>
+            <Modal.Header closeButton>
+                <Modal.Title>고객 위치 인증 리스트</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Row className="userLocationList">
+                <ul className="list-group userLocation-list">
+                  {userLocationList.map((result, index) => (
+                    <li key={index} className="list-group-item">
+                      <button
+                        type="button"
+                        className="btn btn-link address-link"
+                        onClick={() => {
+                          handleUserLocationCloseModal();
+                        }}
+                      >
+                        {result.address}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </Row>
+            </Modal.Body>
+
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleUserLocationCloseModal}>
+                    닫기
+                </Button>
+            </Modal.Footer>
+        </Modal>
+
     </Container>
   );
 }

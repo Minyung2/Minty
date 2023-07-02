@@ -47,7 +47,6 @@ public class TradeBoardController {
     private final TradeBoardRepository tradeBoardRepository;
     private final AddressCodeRepository addressCodeRepository;
 
-    private final UserLocationRepository userLocationRepository;
 
     @Autowired
     public TradeBoardController(CategoryService categoryService, TradeBoardService tradeBoardService, TradeBoardRepository tradeBoardRepository, AddressCodeRepository addressCodeRepository, UserLocationRepository userLocationRepository) {
@@ -55,7 +54,6 @@ public class TradeBoardController {
         this.tradeBoardService = tradeBoardService;
         this.tradeBoardRepository = tradeBoardRepository;
         this.addressCodeRepository = addressCodeRepository;
-        this.userLocationRepository = userLocationRepository;
     }
 
 
@@ -215,7 +213,7 @@ public class TradeBoardController {
         List<AddressCodeDto> addressCode = addressCodeRepository.findAll().stream().map(AddressCodeDto::of).collect(Collectors.toList());
         List<TopCategoryDto> topCategories = categoryService.getTopCategoryList();
         List<SubCategoryDto> subCategories = categoryService.getSubCategoryList();
-        List<UserLocationResponseDto> userLocationList = userLocationRepository.findAllByUserId(userId).stream().map(UserLocationResponseDto::of).collect(Collectors.toList());
+        List<UserLocationResponseDto> userLocationList = tradeBoardService.getLogginedLocationList(userId);
         CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
         response.put("userLocationList",userLocationList);
         response.put("addressCode", addressCode);
