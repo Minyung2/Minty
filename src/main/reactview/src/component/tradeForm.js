@@ -8,7 +8,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStr
 import { Draggable, SortablePhoto } from './sortablePhoto';
 import '../css/tradeForm.css';
 
-function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoard, imageList, addressCode }) {
+function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoard, imageList, addressCode, userLocationList }) {
     const selectFile = useRef(null);
     const [previewImages, setPreviewImages] = useState([]);
     const [error, setError] = useState(null);
@@ -20,6 +20,7 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
     const [searchAddressInput, setSearchAddressInput] = useState('');
     const [searchAddress , setSearchAddress] = useState('');
     const [addressResults, setAddressResults] = useState([]);
+    const [showUserLocationModal,setShowUserLocationModal] = useState(false);
 
     const handleContentChange = (event) => {
       let value = event.target.value;
@@ -168,6 +169,14 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
             });
     };
 
+    const setShowUserLocationList = () => {
+        setShowUserLocationModal(true);
+    }
+
+    const handleUserLocationCloseModal = () => {
+        setShowUserLocationModal(false);
+    }
+
     const handlePostCodeCloseModal = () => {
         setShowPostCodeModal(false);
     };
@@ -176,21 +185,14 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
         setShowPostCodeModal(true);
     };
     const handleAddressChange = (data) => {
-        // Extract the required address information
-        console.log(data);
         const sido = data.sido; // 시/도
-        console.log(sido);
         const sigungu = data.sigungu; // 시/군/구
         const dong = data.dong; // 동
-        const fullAddress = `${sido} ${sigungu} ${dong}`; // Combine the address parts
-        console.log(fullAddress);
-        // Perform any additional processing with the address if needed
-
-        // Set the address to the desired value
-        // For example, you can set it to a form field or update the state variable
+        const fullAddress = `${sido} ${sigungu} ${dong}`;
 
         setShowPostCodeModal(false);
       };
+
 
     const handleAddressSearch = (e) => {
       e.preventDefault();
@@ -240,19 +242,18 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
 
              if (response.ok) {
                const data = await response.json();
-               console.log(data);
                const administrativeDistrict = data.documents[1].address_name;
                setSellArea(administrativeDistrict);
              } else {
-               console.log('Failed to get location from backend:', response.status);
+               console.log('서버와의 통신 중 오류가 있습니다.', response.status);
              }
            },
            (error) => {
-             console.log('Failed to get the current location:', error);
+             console.log('현재 위치를 받는데 실패했습니다.', error);
            }
          );
        } else {
-         console.log('Geolocation is not supported by this browser.');
+         console.log('현재 위치 인증 서비스는 이 브라우저에서 호환하지 않습니다.');
        }
      };
 
@@ -361,7 +362,7 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
                              <button className="areaButton" onClick={handleCurrentLocationClick}>
                                            현재 위치
                             </button>
-                             <button className="areaButton">나의 인증 위치 목록</button>
+                             <button className="areaButton" onClick={setShowUserLocationList}>나의 인증 위치 목록</button>
                              <button className="areaButton" onClick={setShowPostCode}>주소 검색</button>
                            </Col>
                          </Row>
@@ -436,6 +437,38 @@ function TradeForm({ selectedTopCateId, selectedSubCateId,  csrfToken, tradeBoar
                         </Button>
                     </Modal.Footer>
                 </Modal>
+                <Modal show={showUserLocationModal} onHide={handleUserLocationCloseModal} backdrop="static" keyboard={false}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>고객 위치 인증 리스트</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                      <Row className="userLocationList">
+                        <ul className="list-group userLocation-list">
+                          {userLocationList.map((result, index) => (
+                            <li key={index} className="list-group-item">
+                              <button
+                                type="button"
+                                className="btn btn-link address-link"
+                                onClick={() => {
+                                  setSellArea(result.address);
+                                  handleUserLocationCloseModal();
+                                }}
+                              >
+                                {result.address}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </Row>
+                    </Modal.Body>
+
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={handleUserLocationCloseModal}>
+                            닫기
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+
             </Col >
         </Row >
     );

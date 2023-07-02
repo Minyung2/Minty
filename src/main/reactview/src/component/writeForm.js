@@ -19,6 +19,7 @@ function WriteForm(props) {
     const [imageList, setImageList] = useState([]);
     const [state, setState] = useState({});
     const [addressCode, setAddressCode] = useState([]);
+    const [userLocationList, setUserLocationList] = useState([]);
 
      const location = useLocation();
     useEffect(() => {
@@ -41,7 +42,9 @@ function WriteForm(props) {
             let top = [...response.data.top];
             let sub = [...response.data.sub];
             let codes = [...response.data.addressCode];
+            let locList = [...response.data.userLocationList];
             setCsrfToken(response.data.csrfToken);
+            setUserLocationList(locList);
             setTradeTopCate(top);
             setTradeSubCate(sub);
             setAddressCode(codes);
@@ -195,6 +198,7 @@ function WriteForm(props) {
                         tradeBoard={tradeBoard}
                         imageList={imageList}
                         addressCode={addressCode}
+                        userLocationList={userLocationList}
                     />
                 )}
                 {(subCategory === "emergencyJob" && targetCategory === "tradeBoard") && <JobForm csrfToken={csrfToken}/>}

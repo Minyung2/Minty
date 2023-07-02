@@ -6,6 +6,7 @@ import com.Reboot.Minty.categories.CategoryService;
 import com.Reboot.Minty.categories.dto.SubCategoryDto;
 import com.Reboot.Minty.categories.dto.TopCategoryDto;
 import com.Reboot.Minty.member.dto.UserLocationResponseDto;
+import com.Reboot.Minty.member.repository.UserLocationRepository;
 import com.Reboot.Minty.tradeBoard.dto.*;
 import com.Reboot.Minty.tradeBoard.repository.TradeBoardRepository;
 import com.Reboot.Minty.tradeBoard.service.TradeBoardService;
@@ -21,7 +22,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
@@ -29,8 +33,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,14 +45,17 @@ public class TradeBoardController {
     private final CategoryService categoryService;
     private final TradeBoardService tradeBoardService;
     private final TradeBoardRepository tradeBoardRepository;
-
     private final AddressCodeRepository addressCodeRepository;
+
+    private final UserLocationRepository userLocationRepository;
+
     @Autowired
-    public TradeBoardController(CategoryService categoryService, TradeBoardService tradeBoardService, TradeBoardRepository tradeBoardRepository, AddressCodeRepository addressCodeRepository) {
+    public TradeBoardController(CategoryService categoryService, TradeBoardService tradeBoardService, TradeBoardRepository tradeBoardRepository, AddressCodeRepository addressCodeRepository, UserLocationRepository userLocationRepository) {
         this.categoryService = categoryService;
         this.tradeBoardService = tradeBoardService;
         this.tradeBoardRepository = tradeBoardRepository;
         this.addressCodeRepository = addressCodeRepository;
+        this.userLocationRepository = userLocationRepository;
     }
 
 
@@ -114,7 +122,7 @@ public class TradeBoardController {
             @PathVariable(value = "searchArea", required = false) Optional<String> searchArea
     ) {
         HttpSession session = request.getSession();
-        Long userId = (Long)session.getAttribute("userId");
+        Long userId = (Long) session.getAttribute("userId");
         List<UserLocationResponseDto> userLocationList = tradeBoardService.getLogginedLocationList(userId);
         if (subCategoryId.isPresent()) {
             tradeBoardSearchDto.setSubCategoryId(subCategoryId.get());
@@ -131,11 +139,11 @@ public class TradeBoardController {
         if (sortBy.isPresent()) {
             tradeBoardSearchDto.setSortBy(sortBy.get());
         }
-        if(searchArea.isPresent()){
-            System.out.println("1"+searchArea.get());
+        if (searchArea.isPresent()) {
+            System.out.println("1" + searchArea.get());
             tradeBoardSearchDto.setSearchArea(searchArea.get());
-        }else if(!searchArea.isPresent()) {
-            System.out.println("2"+tradeBoardSearchDto.getSearchArea());
+        } else if (!searchArea.isPresent()) {
+            System.out.println("2" + tradeBoardSearchDto.getSearchArea());
             tradeBoardSearchDto.setSearchArea(userLocationList.get(0).getAddress());
         }
 
@@ -144,11 +152,11 @@ public class TradeBoardController {
 
         Pageable pageable = PageRequest.of(page.isPresent() ? page.get() : 0, 20);
         Slice<TradeBoardDto> tradeBoards = tradeBoardService.getTradeBoard(tradeBoardSearchDto, pageable);
-        System.out.println("isEmpty?"+tradeBoards.isEmpty());
-        System.out.println("hasNext?"+tradeBoards.hasNext());
+        System.out.println("isEmpty?" + tradeBoards.isEmpty());
+        System.out.println("hasNext?" + tradeBoards.hasNext());
         System.out.println(tradeBoards.getNumber());
         Map<String, Object> response = new HashMap<>();
-        response.put("userLocationList",userLocationList);
+        response.put("userLocationList", userLocationList);
         response.put("sub", subCategories);
         response.put("top", topCategories);
         response.put("tradeBoards", tradeBoards.getContent());
@@ -201,13 +209,16 @@ public class TradeBoardController {
     @GetMapping({"/api/writeForm"})
     @ResponseBody
     public Map<String, Object> getWriteForm(HttpServletRequest request, Optional<Long> boardId) {
-
+        HttpSession session = request.getSession();
+        Long userId= (Long) session.getAttribute("userId");
         Map<String, Object> response = new HashMap<>();
         List<AddressCodeDto> addressCode = addressCodeRepository.findAll().stream().map(AddressCodeDto::of).collect(Collectors.toList());
         List<TopCategoryDto> topCategories = categoryService.getTopCategoryList();
         List<SubCategoryDto> subCategories = categoryService.getSubCategoryList();
+        List<UserLocationResponseDto> userLocationList = userLocationRepository.findAllByUserId(userId).stream().map(UserLocationResponseDto::of).collect(Collectors.toList());
         CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
-        response.put("addressCode",addressCode);
+        response.put("userLocationList",userLocationList);
+        response.put("addressCode", addressCode);
         response.put("csrfToken", csrfToken.getToken());
         response.put("sub", subCategories);
         response.put("top", topCategories);
@@ -306,12 +317,12 @@ public class TradeBoardController {
 
     @PostMapping("/api/tradeBoard/deleteRequest")
     @ResponseBody
-    public ResponseEntity<?> deleteRequest(@RequestBody Long tradeBoardId, HttpSession session){
-        try{
+    public ResponseEntity<?> deleteRequest(@RequestBody Long tradeBoardId, HttpSession session) {
+        try {
             Long userId = (Long) session.getAttribute("userId");
-            tradeBoardService.deleteBoardRequest(tradeBoardId,userId);
+            tradeBoardService.deleteBoardRequest(tradeBoardId, userId);
             return ResponseEntity.ok().body("해당 물품 삭제를 완료 하였습니다.");
-        }catch (AccessDeniedException e){
+        } catch (AccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         }
     }
@@ -321,22 +332,24 @@ public class TradeBoardController {
 
     @PostMapping("/api/kakao/location")
     @ResponseBody
-    public ResponseEntity<?> getLocationFromKakaoApi(@RequestBody LocationRequest request) {
+    public Mono<ResponseEntity<?>> getLocationFromKakaoApi(@RequestBody LocationRequest request) {
         String apiUrl = "https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x="
                 + request.getLongitude() + "&y=" + request.getLatitude();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "KakaoAK "+kaKaoKey);
+        WebClient client = WebClient.builder()
+                .baseUrl(apiUrl)
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "KakaoAK " + kaKaoKey)
+                .build();
 
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
-
-        if (response.getStatusCode() == HttpStatus.OK) {
-            return ResponseEntity.ok(response.getBody());
-        } else {
-            return ResponseEntity.status(response.getStatusCode()).build();
-        }
+        return client.get()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is2xxSuccessful()) {
+                        return response.bodyToMono(String.class)
+                                .map(body -> ResponseEntity.ok().body(body));
+                    } else {
+                        return Mono.just(ResponseEntity.status(response.statusCode()).build());
+                    }
+                });
     }
 }

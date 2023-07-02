@@ -3,7 +3,6 @@ package com.Reboot.Minty.tradeBoard.dto;
 import com.Reboot.Minty.categories.entity.SubCategory;
 import com.Reboot.Minty.categories.entity.TopCategory;
 import com.Reboot.Minty.member.entity.User;
-import com.Reboot.Minty.member.entity.UserLocation;
 import com.Reboot.Minty.tradeBoard.entity.TradeBoard;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -32,6 +31,8 @@ public class TradeBoardFormDto {
 
     private User user;
     private int boardType;
+
+    @NotNull(message = "판매 지역 입력은 필수 입니다")
     private String sellArea;
 
     private static ModelMapper modelMapper =  new ModelMapper();
