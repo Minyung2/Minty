@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDate;
 
 @Table(name = "user")
 @Builder
@@ -54,7 +55,8 @@ public class User {
     private int balance;
     @Column(nullable = false, name = "point")
     private int point;
-
+    @Column
+    private LocalDate withdrawalDate;
     public User(String name, String email, String ageRange, String mobile, String gender) {
         this.name = name;
         this.email = email;
@@ -78,5 +80,8 @@ public class User {
         user.setBalance(0);
         user.setPoint(0);
         return user;
+    }
+    public void setWithdrawalDateToNow() {
+        withdrawalDate = LocalDate.now();
     }
 }

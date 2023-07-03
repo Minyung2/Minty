@@ -213,3 +213,13 @@ display:flex !important;
 .justify-content-center{
 justify-content:none !important;
 }
+
+
+.dark-dropdown .dropdown-menu {
+  background-color: #343a40;
+}
+
+.dropdown-item {
+    color : white;
+}
+

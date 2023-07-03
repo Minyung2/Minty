@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -27,7 +27,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByNickName(String nickName);
 
     Page<User> findByNameContainingIgnoreCaseOrNickNameContainingIgnoreCase(String name, String nickName, Pageable pageable);
-
+    List<User> findByWithdrawalDateBefore(LocalDate date);
     boolean existsByMobile(String mobile);
     List<User> findByRole(Role role);
     @Modifying

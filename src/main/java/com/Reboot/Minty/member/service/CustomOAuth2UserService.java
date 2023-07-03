@@ -4,11 +4,9 @@ import com.Reboot.Minty.member.constant.Role;
 import com.Reboot.Minty.member.entity.User;
 import com.Reboot.Minty.member.oauth2.OAuthAttributes;
 import com.Reboot.Minty.member.repository.UserRepository;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -19,8 +17,6 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.net.http.HttpRequest;
-import java.util.Collection;
 import java.util.Collections;
 
 @Service

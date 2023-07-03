@@ -1,7 +1,6 @@
 package com.Reboot.Minty.trade.controller;
 
 import com.Reboot.Minty.member.entity.User;
-import com.Reboot.Minty.member.entity.UserLocation;
 import com.Reboot.Minty.member.repository.UserLocationRepository;
 import com.Reboot.Minty.member.service.UserService;
 import com.Reboot.Minty.review.entity.Review;

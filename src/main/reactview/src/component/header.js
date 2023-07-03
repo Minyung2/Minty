@@ -49,14 +49,14 @@ function Header({ csrfToken }) {
                     <div className="navbar-nav me-md-auto d-flex flex-row gap-2">
                         <p></p>
                         <a href="/boardList" className="nav-link menu-a">
-                            거래보드
+                            거래 게시판
                         </a>
                         <p></p>
                         <a href="/jobList" className="nav-link menu-a">
                             급해요
                         </a>
                         <p></p>
-                        <a href="event" className="nav-link menu-a">
+                        <a href="/event" className="nav-link menu-a">
                             이벤트
                         </a>
                         <p></p>
@@ -64,10 +64,14 @@ function Header({ csrfToken }) {
                             커뮤니티
                         </a>
                         <p></p>
-                        <a href="#quote" className="nav-link menu-a">
+                        <a href="/priceSearch" className="nav-link menu-a">
                             시세조회
                         </a>
                         <p></p>
+                        <a href="/getchatting" className="nav-link menu-a">
+                            채팅
+                       </a>
+                       <p></p>
                     </div>
                     <div className="navbar-nav d-flex flex-row gap-2">
                         <a href="/usershop" className="nav-link menu-a">

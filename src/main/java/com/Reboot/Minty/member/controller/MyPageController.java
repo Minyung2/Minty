@@ -1,8 +1,6 @@
 package com.Reboot.Minty.member.controller;
 
 
-import com.Reboot.Minty.event.dto.AttendanceDto;
-import com.Reboot.Minty.event.entity.Attendance;
 import com.Reboot.Minty.event.service.AttendanceService;
 import com.Reboot.Minty.member.entity.User;
 import com.Reboot.Minty.member.repository.UserRepository;
@@ -14,11 +12,9 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 public class MyPageController {

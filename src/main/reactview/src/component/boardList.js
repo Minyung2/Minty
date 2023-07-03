@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Pagination from './pagination';
-import { Button, Container, Row, Col, Nav, Form, Modal } from 'react-bootstrap';
+import { Button, Container, Row, Col, Nav, Form, Modal, Dropdown , DropdownButton} from 'react-bootstrap';
+import RangeSlider from 'react-bootstrap-range-slider';
 import '../css/boardList.css';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { BiSearch } from 'react-icons/bi';
 import InfiniteScroll from 'react-infinite-scroll-component';
+import { Map, MapMarker } from 'react-kakao-maps-sdk';
 
 
 function BoardList() {
@@ -31,6 +33,12 @@ function BoardList() {
     const [userLocationList, setUserLocationList] = useState([]);
     const [searchArea, setSearchArea] = useState('');
     const [showUserLocationModal,setShowUserLocationModal] = useState(false);
+    const [selectedArea, setSelectedArea] = useState('');
+    const [ value, setValue ] = React.useState(50);
+
+    const [map, setMap] = useState(null);
+      const [lineOverlay, setLineOverlay] = useState(null);
+      const [level, setLevel] = useState(0);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -53,9 +61,9 @@ function BoardList() {
     fetchData();
   };
 
-     const handleAreaSearch = (e) => {
-       const areaValue = e.target.value;
-       setSearchArea(areaValue);
+     const handleAreaSearch = (address, dong) => {
+       setSelectedArea(dong);
+       setSearchArea(address);
        setPage(0);
      };
 
@@ -130,7 +138,6 @@ function BoardList() {
   };
 
     useEffect(() => {
-            console.log("setSearchArea?", searchArea);
            fetchData();
     }, [subCategoryId, searchQuery, minPrice, maxPrice, sortBy, searchArea]);
 
@@ -173,9 +180,10 @@ function BoardList() {
        let locations = [...response.data.userLocationList];
        setTopCategories(top);
        setSubCategories(sub);
+       if(!searchArea){
+        setSearchArea(response.data.userLocationList[0].address);
+       }
        setUserLocationList(locations);
-
-       console.log(userLocationList);
        const nextPage = page + 1; // Calculate the next page
        setPage(nextPage); // Update the page state to the next page
        setHasMore(response.data.hasNext);
@@ -277,6 +285,89 @@ const fetchDataWithDelay = () => {
           setShowUserLocationModal(false);
       }
 
+    const extractDong = (address) => {
+      const addressParts = address.split(" ");
+      const dong = addressParts[addressParts.length - 1];
+      return dong;
+    };
+
+  useEffect(() => {
+    axios.get('/api/getMapData')
+    .then((response) => {
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${response.data.apiKey}&autoload=&false&libraries=services`;
+       document.head.appendChild(script);
+
+          script.onload = () => {
+            window.kakao.maps.load(() => {
+              const mapContainer = document.getElementById('container'); // 지도를 표시할 div
+              const mapOption = {
+                center: new window.kakao.maps.LatLng(37.402054, 127.108209), // 지도의 중심좌표
+                level: 3 // 지도의 확대 레벨
+              };
+
+              // 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
+              const map = new window.kakao.maps.Map(mapContainer, mapOption);
+            });
+          };
+
+      return () => {
+        document.head.removeChild(script);
+      };
+    });
+  }, []);
+
+
+
+
+
+      useEffect(() => {
+          // 레벨에 따라 선을 그리는 함수
+          function drawLine(level) {
+            if (map && lineOverlay) {
+              lineOverlay.setMap(null); // 기존에 그려진 선 제거
+
+              const center = map.getCenter();
+              const radius = getRadius(level);
+
+              const linePath = [
+                // 선의 좌표 배열
+                new window.kakao.maps.LatLng(center.getLat() - radius, center.getLng()),
+                new window.kakao.maps.LatLng(center.getLat() + radius, center.getLng()),
+              ];
+
+              const line = new window.kakao.maps.Polyline({
+                path: linePath,
+                strokeWeight: 2,
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.7,
+              });
+
+              line.setMap(map);
+              setLineOverlay(line);
+            }
+          }
+
+          drawLine(level);
+        }, [map, level]);
+
+         function getRadius(level) {
+            switch (level) {
+              case 0:
+                return 3000; // 3km 반경
+              case 1:
+                return 5000; // 5km 반경
+              case 2:
+                return 10000; // 10km 반경
+              default:
+                throw new Error('Invalid level');
+            }
+          }
+
+          function handleSliderChange(value) {
+              setLevel(value);
+            }
 
 
   return (
@@ -298,14 +389,27 @@ const fetchDataWithDelay = () => {
         </div>
       </Row>
       <Row className="justify-content-start">
-        <Col md={2}>
-         <Form.Select className="searchArea" onChange={handleAreaSearch}>
-           {userLocationList.map((loc) => {
-             const addressParts = loc.address.split(" ");
-             const dong = addressParts[addressParts.length - 1]; // Extract the last part as the "동" information
-             return <option value={loc.address}>{dong}</option>;
-           })}
-         </Form.Select>
+        <Col md={1}>
+            <Dropdown className="dark-dropdown">
+            <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
+              {selectedArea ? selectedArea : userLocationList.length > 0 ? extractDong(userLocationList[0].address) : ''}
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+              {userLocationList.map((loc) => {
+                 const dong = extractDong(loc.address); // Extract the last part as the "동" information
+                return (
+                 <Dropdown.Item key={loc.address} onClick={() => handleAreaSearch(loc.address, dong)}>
+                   {dong}
+                 </Dropdown.Item>
+                );
+              })}
+              <Dropdown.Divider style={{borderColor: "white"}} />
+              <Dropdown.Item onClick={setShowUserLocationList}>
+                  동네 범위 설정
+              </Dropdown.Item>
+            </Dropdown.Menu>
+        </Dropdown>
         </Col>
       </Row>
       <Row className="justify-content-end">
@@ -436,11 +540,22 @@ const fetchDataWithDelay = () => {
           )}
         </Col>
       </Row>
-        <Modal show={showUserLocationModal} onHide={handleUserLocationCloseModal} backdrop="static" keyboard={false}>
+        <Modal show={showUserLocationModal} onHide={handleUserLocationCloseModal}>
             <Modal.Header closeButton>
                 <Modal.Title>고객 위치 인증 리스트</Modal.Title>
             </Modal.Header>
             <Modal.Body>
+             <div id="map" style={{ width: '100%', height: '400px' }}></div>
+                <RangeSlider
+                     value={value}
+                     onChange={handleSliderChange}
+                     step={50}
+                     size={"lg"}
+                     min={0}
+                     max={100}
+                     tooltip={false}
+                   />
+
               <Row className="userLocationList">
                 <ul className="list-group userLocation-list">
                   {userLocationList.map((result, index) => (

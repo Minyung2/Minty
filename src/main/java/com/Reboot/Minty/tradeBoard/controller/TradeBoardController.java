@@ -63,6 +63,8 @@ public class TradeBoardController {
     }
 
 
+
+
     @GetMapping(value = {
             "/api/boardList/",
             "/api/boardList/page/{page}",
@@ -160,8 +162,16 @@ public class TradeBoardController {
         response.put("tradeBoards", tradeBoards.getContent());
         response.put("hasNext", tradeBoards.hasNext());
         response.put("page", tradeBoards.getNumber());
-
         return response;
+    }
+    @Value("${kaKao-jsKey}")
+    private String kaKaoJsKey;
+    @GetMapping("/api/getMapData")
+    @ResponseBody
+    public Map<String, String> getMapData() {
+        Map<String, String> data = new HashMap<>();
+        data.put("apiKey", kaKaoJsKey);
+        return data;
     }
 
 
