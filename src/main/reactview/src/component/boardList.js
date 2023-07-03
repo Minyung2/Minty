@@ -34,7 +34,7 @@ function BoardList() {
     const [searchArea, setSearchArea] = useState('');
     const [showUserLocationModal,setShowUserLocationModal] = useState(false);
     const [selectedArea, setSelectedArea] = useState('');
-    const [ value, setValue ] = React.useState(50);
+    const [mapLevel, setMapLevel] = useState(50);
 
     const [map, setMap] = useState(null);
       const [lineOverlay, setLineOverlay] = useState(null);
@@ -278,6 +278,7 @@ const fetchDataWithDelay = () => {
   };
 
    const setShowUserLocationList = () => {
+          onLoadKakaoMap();
           setShowUserLocationModal(true);
       }
 
@@ -291,32 +292,27 @@ const fetchDataWithDelay = () => {
       return dong;
     };
 
-  useEffect(() => {
+    const onLoadKakaoMap = () => {
     axios.get('/api/getMapData')
     .then((response) => {
       const script = document.createElement('script');
       script.async = true;
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${response.data.apiKey}&autoload=&false&libraries=services`;
-       document.head.appendChild(script);
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${response.data.apiKey}&autoload=false&libraries=services`;
+      document.head.appendChild(script);
 
-          script.onload = () => {
-            window.kakao.maps.load(() => {
-              const mapContainer = document.getElementById('container'); // 지도를 표시할 div
-              const mapOption = {
-                center: new window.kakao.maps.LatLng(37.402054, 127.108209), // 지도의 중심좌표
-                level: 3 // 지도의 확대 레벨
-              };
-
-              // 지도를 표시할 div와  지도 옵션으로  지도를 생성합니다
-              const map = new window.kakao.maps.Map(mapContainer, mapOption);
-            });
+      script.onload = () => {
+        window.kakao.maps.load(() => {
+          const mapContainer = document.getElementById('map');
+          const mapOption = {
+            center: new window.kakao.maps.LatLng(37.402054, 127.108209),
+            level: 3
           };
-
-      return () => {
-        document.head.removeChild(script);
+          var map = new window.kakao.maps.Map(mapContainer, mapOption);
+        });
       };
     });
-  }, []);
+  };
+
 
 
 
@@ -365,9 +361,9 @@ const fetchDataWithDelay = () => {
             }
           }
 
-          function handleSliderChange(value) {
-              setLevel(value);
-            }
+          const handleSliderChange = (e) => {
+              setLevel(e.target.value);
+            };
 
 
   return (
@@ -540,21 +536,20 @@ const fetchDataWithDelay = () => {
           )}
         </Col>
       </Row>
-        <Modal show={showUserLocationModal} onHide={handleUserLocationCloseModal}>
+        <Modal show={showUserLocationModal} onHide={handleUserLocationCloseModal} dialogClassName="custom-modal" bsClass="my-modal" >
             <Modal.Header closeButton>
                 <Modal.Title>고객 위치 인증 리스트</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-             <div id="map" style={{ width: '100%', height: '400px' }}></div>
+             <div id="map" style={{ width: '100%', height: '100%' }}></div>
                 <RangeSlider
-                     value={value}
-                     onChange={handleSliderChange}
-                     step={50}
-                     size={"lg"}
-                     min={0}
-                     max={100}
-                     tooltip={false}
-                   />
+                      value={mapLevel}
+                      onChange={handleSliderChange}
+                      step={50}
+                      min={0}
+                      max={100}
+                      tooltip={false}
+                    />
 
               <Row className="userLocationList">
                 <ul className="list-group userLocation-list">
