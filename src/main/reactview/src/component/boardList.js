@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef  } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Pagination from './pagination';
@@ -35,11 +35,14 @@ function BoardList() {
   const [selectedArea, setSelectedArea] = useState('');
   const [mapLevel, setMapLevel] = useState(0);
   const [addressCode, setAddressCode] = useState([]);
-
+  const [targetName, setTargetName] = useState('');
   const [kakaoMap, setKakaoMap] = useState(null);
-
+    const [selectedIndex, setSelectedIndex] = useState(null);
   const [lineOverlay, setLineOverlay] = useState(null);
   const [level, setLevel] = useState(0);
+  const [ currentPolygon , setCurrentPolygon ] = useState(null);
+    const mapContainerRef = useRef();
+
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -280,14 +283,6 @@ function BoardList() {
     }
   };
 
-  const setShowUserLocationList = () => {
-    onLoadKakaoMap(userLocationList);
-    setShowUserLocationModal(true);
-  }
-
-  const handleUserLocationCloseModal = () => {
-    setShowUserLocationModal(false);
-  }
 
   const extractDong = (address) => {
     const addressParts = address.split(" ");
@@ -295,45 +290,54 @@ function BoardList() {
     return dong;
   };
 
+  const setShowUserLocationList = () => {
+      if(!kakaoMap){
+        onLoadKakaoMap(userLocationList);
+      }
+      setShowUserLocationModal(true);
+  };
+
+  const handleUserLocationCloseModal = () => {
+//   setKakaoMap(null);
+    setShowUserLocationModal(false);
+  }
 
 
-
-
-
-  const drawPolygon = (map, targetName, locations) => {
+     const drawPolygon = (kakaoMap, locations, index) => {
+    if (currentPolygon) {
+        currentPolygon.setMap(null); // Remove the current polygon from the map
+      }
     axios.get('/geojson/HangJeongDong_ver20230701.geojson')
       .then((response) => {
         const data = response.data;
 
-        const centerPoint = turf.point([locations[0].longitude, locations[0].latitude]);
+        const centerPoint = turf.point([locations[index].longitude, locations[index].latitude]);
 
+        console.log(centerPoint);
         // loop through each feature in the features array
         for (let i = 0; i < data.features.length; i++) {
           const feature = data.features[i];
-          // Get the name value from the feature properties
-          const name = feature.properties.adm_nm;
-
-          // If the name matches the target name
-          if (name === targetName) {
+          if (turf.booleanPointInPolygon(centerPoint, feature)) {
+            console.log("tf?" + turf.booleanPointInPolygon(centerPoint, feature));
             let paths = feature.geometry.coordinates[0][0].map(coordinates => {
               return new window.kakao.maps.LatLng(coordinates[1], coordinates[0]);
             });
-
+            console.log("paths" + paths);
             // create the polygon
             let polygon = new window.kakao.maps.Polygon({
-              path: paths,
-              strokeWeight: 2,
-              strokeColor: 'saddlebrown', // 선의 색깔입니다
-              strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
-              strokeStyle: 'dash', // 선의 스타일입니다
-              fillColor: '#ABEBC6', // 채우기 색깔입니다
-              fillOpacity: 0.8 // 채우기 불투명도 입니다
+               path: paths,
+                strokeWeight: 2,
+                strokeColor: 'saddlebrown', // 선의 색깔입니다
+                strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+                strokeStyle: 'dash', // 선의 스타일입니다
+                fillColor: '#ABEBC6', // 채우기 색깔입니다
+                fillOpacity: 0.8 // 채우기 불투명도 입니다
             });
+            console.log("Polygon paths: ", polygon.getPath().map(coord => [coord.getLat(), coord.getLng()]));
 
             // add the polygon to the map
-            polygon.setMap(map);
-            // stop the loop as we have found our target
-            break;
+            polygon.setMap(kakaoMap);
+            setCurrentPolygon(polygon);
           }
         }
       })
@@ -342,9 +346,8 @@ function BoardList() {
       });
   };
 
+
   const onLoadKakaoMap = (locations) => {
-    const targetName = locations[0].address;
-    console.log(targetName);
     axios.get('/api/getMapData')
       .then((response) => {
         const script = document.createElement('script');
@@ -354,20 +357,24 @@ function BoardList() {
 
         script.onload = () => {
           window.kakao.maps.load(() => {
-            const mapContainer = document.getElementById('map');
-            const mapOption = {
-              center: new window.kakao.maps.LatLng(locations[0].latitude, locations[0].longitude),
-              level: 7
-            };
-            const map = new window.kakao.maps.Map(mapContainer, mapOption);
-
-            drawPolygon(map, targetName, locations);
+            if (mapContainerRef.current) {
+              // Create and add a new map only if mapContainer is empty
+              const mapOption = {
+                center: new window.kakao.maps.LatLng(locations[0].latitude, locations[0].longitude),
+                level: 7
+              };
+              setKakaoMap(new window.kakao.maps.Map(mapContainerRef.current, mapOption));
+              drawPolygon(kakaoMap, locations, 0);
+            }
           });
         };
+
       });
   };
 
-
+const handleAddressLinkClick = (index) => {
+  drawPolygon(kakaoMap, userLocationList, index);
+};
 
 
 
@@ -550,8 +557,8 @@ function BoardList() {
           <Modal.Title>고객 위치 인증 리스트</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div id="map" style={{ width: '100%', height: '100%' }}></div>
-          <br/><br/>
+          <div ref={mapContainerRef} id="map" style={{ width: '100%', height: '100%' }}></div>
+          <br /><br />
           <RangeSlider
             value={mapLevel}
             onChange={handleSliderChange}
@@ -572,7 +579,7 @@ function BoardList() {
                       type="button"
                       className="btn btn-link address-link"
                       onClick={() => {
-
+                        handleAddressLinkClick(index)
                       }}
                     >
                       {result.address}
