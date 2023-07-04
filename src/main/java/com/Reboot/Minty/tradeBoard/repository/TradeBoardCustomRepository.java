@@ -61,7 +61,6 @@ public class TradeBoardCustomRepository {
 
     private BooleanExpression searchByArea(String searchArea){
         if (searchArea != null){
-            System.out.println("does it reach CustomRepo?");
             return QTradeBoard.tradeBoard.sellArea.eq(searchArea);
         }
         return null;

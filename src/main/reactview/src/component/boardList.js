@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Pagination from './pagination';
-import { Button, Container, Row, Col, Nav, Form, Modal, Dropdown , DropdownButton} from 'react-bootstrap';
+import { Button, Container, Row, Col, Nav, Form, Modal, Dropdown, DropdownButton } from 'react-bootstrap';
 import RangeSlider from 'react-bootstrap-range-slider';
 import '../css/boardList.css';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { BiSearch } from 'react-icons/bi';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import { Map, MapMarker } from 'react-kakao-maps-sdk';
-
+import * as turf from '@turf/turf';
 
 function BoardList() {
   const [topCategories, setTopCategories] = useState([]);
@@ -30,15 +29,17 @@ function BoardList() {
   const [page, setPage] = useState(pageParam ? Number(pageParam) : 0);
   const [hasMore, setHasMore] = useState(true);
   const { page: pageParam } = useParams();
-    const [userLocationList, setUserLocationList] = useState([]);
-    const [searchArea, setSearchArea] = useState('');
-    const [showUserLocationModal,setShowUserLocationModal] = useState(false);
-    const [selectedArea, setSelectedArea] = useState('');
-    const [mapLevel, setMapLevel] = useState(50);
+  const [userLocationList, setUserLocationList] = useState([]);
+  const [searchArea, setSearchArea] = useState('');
+  const [showUserLocationModal, setShowUserLocationModal] = useState(false);
+  const [selectedArea, setSelectedArea] = useState('');
+  const [mapLevel, setMapLevel] = useState(0);
+  const [addressCode, setAddressCode] = useState([]);
 
-    const [map, setMap] = useState(null);
-      const [lineOverlay, setLineOverlay] = useState(null);
-      const [level, setLevel] = useState(0);
+  const [kakaoMap, setKakaoMap] = useState(null);
+
+  const [lineOverlay, setLineOverlay] = useState(null);
+  const [level, setLevel] = useState(0);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -61,11 +62,11 @@ function BoardList() {
     fetchData();
   };
 
-     const handleAreaSearch = (address, dong) => {
-       setSelectedArea(dong);
-       setSearchArea(address);
-       setPage(0);
-     };
+  const handleAreaSearch = (address, dong) => {
+    setSelectedArea(dong);
+    setSearchArea(address);
+    setPage(0);
+  };
 
 
   const handleSortByChange = (e) => {
@@ -137,67 +138,69 @@ function BoardList() {
     fetchData();
   };
 
-    useEffect(() => {
-           fetchData();
-    }, [subCategoryId, searchQuery, minPrice, maxPrice, sortBy, searchArea]);
+  useEffect(() => {
+    fetchData();
+  }, [subCategoryId, searchQuery, minPrice, maxPrice, sortBy, searchArea]);
 
- const fetchData = async () => {
-   let endpoint = '/api/boardList';
-   if (searchArea) {
-     endpoint += `/searchArea/${searchArea}`
-   }
-   if (subCategoryId) {
-     endpoint += `/category/${subCategoryId}`;
-   }
-   if (searchQuery) {
-     endpoint += `/searchQuery/${searchQuery}`;
-   }
-   if (minPrice) {
-     endpoint += `/minPrice/${minPrice}`;
-   }
-   if (maxPrice) {
-     endpoint += `/maxPrice/${maxPrice}`;
-   }
-   if (sortBy) {
-     endpoint += `/sortBy/${sortBy}`;
-   }
+  const fetchData = async () => {
+    let endpoint = '/api/boardList';
+    if (searchArea) {
+      endpoint += `/searchArea/${searchArea}`
+    }
+    if (subCategoryId) {
+      endpoint += `/category/${subCategoryId}`;
+    }
+    if (searchQuery) {
+      endpoint += `/searchQuery/${searchQuery}`;
+    }
+    if (minPrice) {
+      endpoint += `/minPrice/${minPrice}`;
+    }
+    if (maxPrice) {
+      endpoint += `/maxPrice/${maxPrice}`;
+    }
+    if (sortBy) {
+      endpoint += `/sortBy/${sortBy}`;
+    }
 
-   endpoint += `/page/${page}`;
-
-   console.log(endpoint);
-   await axios
-     .get(endpoint)
-     .then((response) => {
-       if (page === 0 && endpoint != `/api/boardList/page/0`) {
-         // If it's the first page, reset the tradeBoards state
-         setTradeBoards(response.data.tradeBoards);
-       } else {
-         // If it's not the first page, append the new tradeBoards to the existing state
-         setTradeBoards((prevBoards) => [...prevBoards, ...response.data.tradeBoards]);
-       }
-       let top = [...response.data.top];
-       let sub = [...response.data.sub];
-       let locations = [...response.data.userLocationList];
-       setTopCategories(top);
-       setSubCategories(sub);
-       if(!searchArea){
-        setSearchArea(response.data.userLocationList[0].address);
-       }
-       setUserLocationList(locations);
-       const nextPage = page + 1; // Calculate the next page
-       setPage(nextPage); // Update the page state to the next page
-       setHasMore(response.data.hasNext);
-     })
-     .catch((error) => {
-       console.error('Error fetching data:', error);
-     });
- };
+    endpoint += `/page/${page}`;
 
 
+    await axios
+      .get(endpoint)
+      .then((response) => {
+        if (page === 0 && endpoint != `/api/boardList/page/0`) {
+          // If it's the first page, reset the tradeBoards state
+          setTradeBoards(response.data.tradeBoards);
+        } else {
+          // If it's not the first page, append the new tradeBoards to the existing state
+          setTradeBoards((prevBoards) => [...prevBoards, ...response.data.tradeBoards]);
+        }
+        let top = [...response.data.top];
+        let sub = [...response.data.sub];
+        let hCode = [...response.data.addressCode];
+        let locations = [...response.data.userLocationList];
+        setAddressCode(hCode);
+        setTopCategories(top);
+        setSubCategories(sub);
+        if (!searchArea) {
+          setSearchArea(response.data.userLocationList[0].address);
+        }
+        setUserLocationList(locations);
+        const nextPage = page + 1; // Calculate the next page
+        setPage(nextPage); // Update the page state to the next page
+        setHasMore(response.data.hasNext);
+      })
+      .catch((error) => {
+        console.error('Error fetching data:', error);
+      });
+  };
 
-const fetchDataWithDelay = () => {
-  setTimeout(fetchData, 500);
-};
+
+
+  const fetchDataWithDelay = () => {
+    setTimeout(fetchData, 500);
+  };
 
 
   const removeFilter = (filterType) => {
@@ -277,40 +280,19 @@ const fetchDataWithDelay = () => {
     }
   };
 
-   const setShowUserLocationList = () => {
-          onLoadKakaoMap();
-          setShowUserLocationModal(true);
-      }
+  const setShowUserLocationList = () => {
+    onLoadKakaoMap(userLocationList);
+    setShowUserLocationModal(true);
+  }
 
-      const handleUserLocationCloseModal = () => {
-          setShowUserLocationModal(false);
-      }
+  const handleUserLocationCloseModal = () => {
+    setShowUserLocationModal(false);
+  }
 
-    const extractDong = (address) => {
-      const addressParts = address.split(" ");
-      const dong = addressParts[addressParts.length - 1];
-      return dong;
-    };
-
-    const onLoadKakaoMap = () => {
-    axios.get('/api/getMapData')
-    .then((response) => {
-      const script = document.createElement('script');
-      script.async = true;
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${response.data.apiKey}&autoload=false&libraries=services`;
-      document.head.appendChild(script);
-
-      script.onload = () => {
-        window.kakao.maps.load(() => {
-          const mapContainer = document.getElementById('map');
-          const mapOption = {
-            center: new window.kakao.maps.LatLng(37.402054, 127.108209),
-            level: 3
-          };
-          var map = new window.kakao.maps.Map(mapContainer, mapOption);
-        });
-      };
-    });
+  const extractDong = (address) => {
+    const addressParts = address.split(" ");
+    const dong = addressParts[addressParts.length - 1];
+    return dong;
   };
 
 
@@ -318,53 +300,81 @@ const fetchDataWithDelay = () => {
 
 
 
-      useEffect(() => {
-          // 레벨에 따라 선을 그리는 함수
-          function drawLine(level) {
-            if (map && lineOverlay) {
-              lineOverlay.setMap(null); // 기존에 그려진 선 제거
+  const onLoadKakaoMap = (locations) => {
+    const targetName = locations[0].address;
+    console.log(targetName);
+    axios.get('/api/getMapData')
+      .then((response) => {
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${response.data.apiKey}&autoload=false&libraries=services`;
+        document.head.appendChild(script);
 
-              const center = map.getCenter();
-              const radius = getRadius(level);
-
-              const linePath = [
-                // 선의 좌표 배열
-                new window.kakao.maps.LatLng(center.getLat() - radius, center.getLng()),
-                new window.kakao.maps.LatLng(center.getLat() + radius, center.getLng()),
-              ];
-
-              const line = new window.kakao.maps.Polyline({
-                path: linePath,
-                strokeWeight: 2,
-                strokeColor: '#FF0000',
-                strokeOpacity: 0.7,
-              });
-
-              line.setMap(map);
-              setLineOverlay(line);
-            }
-          }
-
-          drawLine(level);
-        }, [map, level]);
-
-         function getRadius(level) {
-            switch (level) {
-              case 0:
-                return 3000; // 3km 반경
-              case 1:
-                return 5000; // 5km 반경
-              case 2:
-                return 10000; // 10km 반경
-              default:
-                throw new Error('Invalid level');
-            }
-          }
-
-          const handleSliderChange = (e) => {
-              setLevel(e.target.value);
+        script.onload = () => {
+          window.kakao.maps.load(() => {
+            const mapContainer = document.getElementById('map');
+            const mapOption = {
+              center: new window.kakao.maps.LatLng(locations[0].latitude, locations[0].longitude),
+              level: 7
             };
+            const map = new window.kakao.maps.Map(mapContainer, mapOption);
 
+            axios.get('/geojson/HangJeongDong_ver20230701.geojson')
+              .then((response) => {
+                const data = response.data;
+                console.log(data);
+
+                const centerPoint = turf.point([locations[0].longitude, locations[0].latitude]);
+                console.log(centerPoint);
+
+                // loop through each feature in the features array
+                for (let i = 0; i < data.features.length; i++) {
+                  const feature = data.features[i];
+                  // Get the name value from the feature properties
+                  const name = feature.properties.adm_nm;
+                  console.log("Polygon name: ", name);
+
+                  // If the name matches the target name
+                  if (name === targetName) {
+                    let paths = feature.geometry.coordinates[0][0].map(coordinates => {
+                      return new window.kakao.maps.LatLng(coordinates[1], coordinates[0]);
+                    });
+                    console.log("paths", paths);
+
+                    // create the polygon
+                    let polygon = new window.kakao.maps.Polygon({
+                      path: paths,
+                      strokeWeight: 2,
+                      strokeColor: 'saddlebrown', // 선의 색깔입니다
+                      strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+                      strokeStyle: 'dash', // 선의 스타일입니다
+                      fillColor: '#ABEBC6', // 채우기 색깔입니다
+                      fillOpacity: 0.8 // 채우기 불투명도 입니다
+                    });
+
+                    console.log("Polygon paths: ", polygon.getPath().map(coord => [coord.getLat(), coord.getLng()]));
+
+                    // add the polygon to the map
+                    polygon.setMap(map);
+                    // stop the loop as we have found our target
+                    break;
+                  }
+                }
+              })
+              .catch((error) => {
+                console.error('Error fetching GeoJSON:', error);
+              });
+          });
+        };
+      });
+  };
+
+
+
+
+  const handleSliderChange = (e) => {
+    setMapLevel(e.target.value);
+  };
 
   return (
     <Container fluid>
@@ -386,26 +396,26 @@ const fetchDataWithDelay = () => {
       </Row>
       <Row className="justify-content-start">
         <Col md={1}>
-            <Dropdown className="dark-dropdown">
+          <Dropdown className="dark-dropdown">
             <Dropdown.Toggle id="dropdown-button-dark" variant="secondary">
               {selectedArea ? selectedArea : userLocationList.length > 0 ? extractDong(userLocationList[0].address) : ''}
             </Dropdown.Toggle>
 
             <Dropdown.Menu>
               {userLocationList.map((loc) => {
-                 const dong = extractDong(loc.address); // Extract the last part as the "동" information
+                const dong = extractDong(loc.address); // Extract the last part as the "동" information
                 return (
-                 <Dropdown.Item key={loc.address} onClick={() => handleAreaSearch(loc.address, dong)}>
-                   {dong}
-                 </Dropdown.Item>
+                  <Dropdown.Item key={loc.address} onClick={() => handleAreaSearch(loc.address, dong)}>
+                    {dong}
+                  </Dropdown.Item>
                 );
               })}
-              <Dropdown.Divider style={{borderColor: "white"}} />
+              <Dropdown.Divider style={{ borderColor: "white" }} />
               <Dropdown.Item onClick={setShowUserLocationList}>
-                  동네 범위 설정
+                동네 범위 설정
               </Dropdown.Item>
             </Dropdown.Menu>
-        </Dropdown>
+          </Dropdown>
         </Col>
       </Row>
       <Row className="justify-content-end">
@@ -417,50 +427,50 @@ const fetchDataWithDelay = () => {
             <option value="priceDesc">높은 가격순</option>
           </Form.Select>
           <form onSubmit={handleSearch}>
-              <Row className="d-flex ">
-                <Col sm={2}>
-                   <input type="text" className="search-input" name="searchQuery" value={searchQueryInput} onChange={(e) => setSearchQueryInput(e.target.value)} />
-                     <button type="submit">
-                        <BiSearch />
-                     </button>
-                </Col>
-              </Row>
-           </form>
-         </Col>
+            <Row className="d-flex ">
+              <Col sm={2}>
+                <input type="text" className="search-input" name="searchQuery" value={searchQueryInput} onChange={(e) => setSearchQueryInput(e.target.value)} />
+                <button type="submit">
+                  <BiSearch />
+                </button>
+              </Col>
+            </Row>
+          </form>
+        </Col>
       </Row>
 
       <Row className="justify-content-end">
-       <Col xs="auto">
-                       <a href="/writeForm" className="ml-auto">
-                           <Button className="writebutton">
-                               <p className="writebuttontext">글쓰기</p>
-                           </Button>
-                       </a>
-                     </Col>
+        <Col xs="auto">
+          <a href="/writeForm" className="ml-auto">
+            <Button className="writebutton">
+              <p className="writebuttontext">글쓰기</p>
+            </Button>
+          </a>
+        </Col>
         <Col md={3}>
-         <Form onSubmit={searchByPrice} className="d-flex align-items-center m-filter">
-           <Form.Group className="mr-2">
-             <Form.Control
-               type="number"
-               name="minPrice"
-               placeholder="최소 가격"
-               value={minPriceInput}
-               onChange={(e) => setMinPriceInput(e.target.value)}
-             />
-           </Form.Group>
-           <Form.Group className="mr-2">
-             <Form.Control
-               type="number"
-               name="maxPrice"
-               placeholder="최대 가격"
-               value={maxPriceInput}
-               onChange={(e) => setMaxPriceInput(e.target.value)}
-             />
-           </Form.Group>
-           <Button variant="primary" type="submit" className="mr-2 search" >
-             검색
-           </Button>
-         </Form>
+          <Form onSubmit={searchByPrice} className="d-flex align-items-center m-filter">
+            <Form.Group className="mr-2">
+              <Form.Control
+                type="number"
+                name="minPrice"
+                placeholder="최소 가격"
+                value={minPriceInput}
+                onChange={(e) => setMinPriceInput(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group className="mr-2">
+              <Form.Control
+                type="number"
+                name="maxPrice"
+                placeholder="최대 가격"
+                value={maxPriceInput}
+                onChange={(e) => setMaxPriceInput(e.target.value)}
+              />
+            </Form.Group>
+            <Button variant="primary" type="submit" className="mr-2 search" >
+              검색
+            </Button>
+          </Form>
         </Col>
       </Row>
       <Row>
@@ -536,46 +546,64 @@ const fetchDataWithDelay = () => {
           )}
         </Col>
       </Row>
-        <Modal show={showUserLocationModal} onHide={handleUserLocationCloseModal} dialogClassName="custom-modal" bsClass="my-modal" >
-            <Modal.Header closeButton>
-                <Modal.Title>고객 위치 인증 리스트</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-             <div id="map" style={{ width: '100%', height: '100%' }}></div>
-                <RangeSlider
-                      value={mapLevel}
-                      onChange={handleSliderChange}
-                      step={50}
-                      min={0}
-                      max={100}
-                      tooltip={false}
-                    />
+      <Modal show={showUserLocationModal} onHide={handleUserLocationCloseModal} dialogClassName="custom-modal" bsClass="my-modal" >
+        <Modal.Header closeButton>
+          <Modal.Title>고객 위치 인증 리스트</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div id="map" style={{ width: '100%', height: '100%' }}></div>
+          <br/><br/>
+          <RangeSlider
+            value={mapLevel}
+            onChange={handleSliderChange}
+            step={50}
+            min={0}
+            max={100}
+            tooltip={false}
+            variant='info'
+          />
+          <br /><br />
 
-              <Row className="userLocationList">
-                <ul className="list-group userLocation-list">
-                  {userLocationList.map((result, index) => (
-                    <li key={index} className="list-group-item">
-                      <button
-                        type="button"
-                        className="btn btn-link address-link"
-                        onClick={() => {
-                          handleUserLocationCloseModal();
-                        }}
-                      >
-                        {result.address}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </Row>
-            </Modal.Body>
+          <Row className="userLocationList">
+            <div className="col">
+              <ul className="list-group userLocation-list d-flex flex-row align-items-center flex-nowrap">
+                {userLocationList.map((result, index) => (
+                  <li key={index} className="list-group-item">
+                    <button
+                      type="button"
+                      className="btn btn-link address-link"
+                      onClick={() => {
 
-            <Modal.Footer>
-                <Button variant="secondary" onClick={handleUserLocationCloseModal}>
-                    닫기
-                </Button>
-            </Modal.Footer>
-        </Modal>
+                      }}
+                    >
+                      {result.address}
+                    </button>
+                  </li>
+                ))}
+                <li className="list-group-item">
+                  <button
+                    type="button"
+                    className="btn btn-link address-link"
+                    onClick={() => {
+                      // Handle the action for the + button
+                    }}
+                  >
+                    +
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </Row>
+
+
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleUserLocationCloseModal}>
+            닫기
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
     </Container>
   );

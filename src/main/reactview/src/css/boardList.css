@@ -222,4 +222,25 @@ justify-content:none !important;
 .dropdown-item {
     color : white;
 }
+.my-modal{
+    width:100%;
+    height:100%;
+}
+
+.modal-content{
+    width:95%;
+    height:95%;
+}
+
+.range-slider__wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.range-slider {
+    width : 80%;
+}
+
+
 
