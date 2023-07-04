@@ -300,6 +300,48 @@ function BoardList() {
 
 
 
+  const drawPolygon = (map, targetName, locations) => {
+    axios.get('/geojson/HangJeongDong_ver20230701.geojson')
+      .then((response) => {
+        const data = response.data;
+
+        const centerPoint = turf.point([locations[0].longitude, locations[0].latitude]);
+
+        // loop through each feature in the features array
+        for (let i = 0; i < data.features.length; i++) {
+          const feature = data.features[i];
+          // Get the name value from the feature properties
+          const name = feature.properties.adm_nm;
+
+          // If the name matches the target name
+          if (name === targetName) {
+            let paths = feature.geometry.coordinates[0][0].map(coordinates => {
+              return new window.kakao.maps.LatLng(coordinates[1], coordinates[0]);
+            });
+
+            // create the polygon
+            let polygon = new window.kakao.maps.Polygon({
+              path: paths,
+              strokeWeight: 2,
+              strokeColor: 'saddlebrown', // 선의 색깔입니다
+              strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
+              strokeStyle: 'dash', // 선의 스타일입니다
+              fillColor: '#ABEBC6', // 채우기 색깔입니다
+              fillOpacity: 0.8 // 채우기 불투명도 입니다
+            });
+
+            // add the polygon to the map
+            polygon.setMap(map);
+            // stop the loop as we have found our target
+            break;
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching GeoJSON:', error);
+      });
+  };
+
   const onLoadKakaoMap = (locations) => {
     const targetName = locations[0].address;
     console.log(targetName);
@@ -319,55 +361,12 @@ function BoardList() {
             };
             const map = new window.kakao.maps.Map(mapContainer, mapOption);
 
-            axios.get('/geojson/HangJeongDong_ver20230701.geojson')
-              .then((response) => {
-                const data = response.data;
-                console.log(data);
-
-                const centerPoint = turf.point([locations[0].longitude, locations[0].latitude]);
-                console.log(centerPoint);
-
-                // loop through each feature in the features array
-                for (let i = 0; i < data.features.length; i++) {
-                  const feature = data.features[i];
-                  // Get the name value from the feature properties
-                  const name = feature.properties.adm_nm;
-                  console.log("Polygon name: ", name);
-
-                  // If the name matches the target name
-                  if (name === targetName) {
-                    let paths = feature.geometry.coordinates[0][0].map(coordinates => {
-                      return new window.kakao.maps.LatLng(coordinates[1], coordinates[0]);
-                    });
-                    console.log("paths", paths);
-
-                    // create the polygon
-                    let polygon = new window.kakao.maps.Polygon({
-                      path: paths,
-                      strokeWeight: 2,
-                      strokeColor: 'saddlebrown', // 선의 색깔입니다
-                      strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
-                      strokeStyle: 'dash', // 선의 스타일입니다
-                      fillColor: '#ABEBC6', // 채우기 색깔입니다
-                      fillOpacity: 0.8 // 채우기 불투명도 입니다
-                    });
-
-                    console.log("Polygon paths: ", polygon.getPath().map(coord => [coord.getLat(), coord.getLng()]));
-
-                    // add the polygon to the map
-                    polygon.setMap(map);
-                    // stop the loop as we have found our target
-                    break;
-                  }
-                }
-              })
-              .catch((error) => {
-                console.error('Error fetching GeoJSON:', error);
-              });
+            drawPolygon(map, targetName, locations);
           });
         };
       });
   };
+
 
 
 
