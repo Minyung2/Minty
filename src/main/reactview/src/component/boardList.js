@@ -4,12 +4,13 @@ import axios from 'axios';
 import Pagination from './pagination';
 import { Button, Container, Row, Col, Nav, Form, Modal, Dropdown, DropdownButton } from 'react-bootstrap';
 import RangeSlider from 'react-bootstrap-range-slider';
-import '../css/boardList.css';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { BiSearch } from 'react-icons/bi';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import * as turf from '@turf/turf';
+import 'react-bootstrap-range-slider/dist/react-bootstrap-range-slider.css';
+import '../css/boardList.css';
 
 function BoardList() {
   const [topCategories, setTopCategories] = useState([]);
@@ -30,18 +31,23 @@ function BoardList() {
   const [hasMore, setHasMore] = useState(true);
   const { page: pageParam } = useParams();
   const [userLocationList, setUserLocationList] = useState([]);
-  const [searchArea, setSearchArea] = useState('');
+  const [searchArea, setSearchArea] = useState([]);
   const [showUserLocationModal, setShowUserLocationModal] = useState(false);
   const [selectedArea, setSelectedArea] = useState('');
   const [mapLevel, setMapLevel] = useState(0);
   const [addressCode, setAddressCode] = useState([]);
   const [targetName, setTargetName] = useState('');
-  const [kakaoMap, setKakaoMap] = useState(null);
-    const [selectedIndex, setSelectedIndex] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
   const [lineOverlay, setLineOverlay] = useState(null);
   const [level, setLevel] = useState(0);
   const [ currentPolygon , setCurrentPolygon ] = useState(null);
-    const mapContainerRef = useRef();
+  const [ currentCenter, setCurrentCenter ] = useState([]);
+  const [ currentAdmNm , setCurrentAdmNm] = useState('');
+  const [fullscreen, setFullscreen] = useState(true);
+    const kakaoMap = useRef(null);
+    const mapContainerRef = useRef(null);
+    const mapContainerStyle = showUserLocationModal ? { width: '100%', height: '90%' } : { display: 'none' };
+
 
 
   const handleSearch = (e) => {
@@ -65,9 +71,10 @@ function BoardList() {
     fetchData();
   };
 
-  const handleAreaSearch = (address, dong) => {
+  const handleAreaSearch = (loc, dong) => {
     setSelectedArea(dong);
-    setSearchArea(address);
+    setSearchArea(loc.address);
+    setCurrentAdmNm(loc.code);
     setPage(0);
   };
 
@@ -141,14 +148,16 @@ function BoardList() {
     fetchData();
   };
 
+
+
   useEffect(() => {
     fetchData();
   }, [subCategoryId, searchQuery, minPrice, maxPrice, sortBy, searchArea]);
 
   const fetchData = async () => {
     let endpoint = '/api/boardList';
-    if (searchArea) {
-      endpoint += `/searchArea/${searchArea}`
+    if (searchArea.length > 0) {
+      endpoint += `/searchArea/${searchArea}`;
     }
     if (subCategoryId) {
       endpoint += `/category/${subCategoryId}`;
@@ -167,7 +176,7 @@ function BoardList() {
     }
 
     endpoint += `/page/${page}`;
-
+    console.log(endpoint);
 
     await axios
       .get(endpoint)
@@ -183,16 +192,35 @@ function BoardList() {
         let sub = [...response.data.sub];
         let hCode = [...response.data.addressCode];
         let locations = [...response.data.userLocationList];
-        setAddressCode(hCode);
+
+        locations = locations.map(location => {
+          const address = location.address;
+          const dong = address.split(' ')[2];
+
+          const matchingCode = hCode.find(code => code.dong === dong);
+          if (matchingCode) {
+            return { ...location, code: matchingCode.code };
+          } else {
+            return location;
+          }
+        });
+
         setTopCategories(top);
         setSubCategories(sub);
-        if (!searchArea) {
-          setSearchArea(response.data.userLocationList[0].address);
+        if (searchArea.length === 0) {
+          let firstFetch = [response.data.userLocationList[0].address];
+          console.log("여기 옴?"+firstFetch);
+          setSearchArea(firstFetch);
         }
+
         setUserLocationList(locations);
         const nextPage = page + 1; // Calculate the next page
         setPage(nextPage); // Update the page state to the next page
         setHasMore(response.data.hasNext);
+        if(currentCenter.length===0){
+            setCurrentCenter([response.data.userLocationList[0].latitude, response.data.userLocationList[0].longitude]);
+            setCurrentAdmNm(locations[0].code);
+        }
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
@@ -291,95 +319,133 @@ function BoardList() {
   };
 
   const setShowUserLocationList = () => {
-      if(!kakaoMap){
         onLoadKakaoMap(userLocationList);
-      }
-      setShowUserLocationModal(true);
+        setFullscreen(true);
+        setShowUserLocationModal(true);
   };
 
-  const handleUserLocationCloseModal = () => {
-//   setKakaoMap(null);
-    setShowUserLocationModal(false);
-  }
+   const handleUserLocationCloseModal = () => {
+       if (kakaoMap.current) {
+          const center = kakaoMap.current.getCenter();
+          setCurrentCenter([center.getLat(), center.getLng()]);
+          kakaoMap.current = null;
+       }
+      setShowUserLocationModal(false);
+    }
 
 
-     const drawPolygon = (kakaoMap, locations, index) => {
-    if (currentPolygon) {
-        currentPolygon.setMap(null); // Remove the current polygon from the map
-      }
-    axios.get('/geojson/HangJeongDong_ver20230701.geojson')
-      .then((response) => {
-        const data = response.data;
+     const onLoadKakaoMap = (locations) => {
+         axios.get('/api/getMapData').then((response) => {
+           const script = document.createElement('script');
+           script.async = true;
+           script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${response.data.apiKey}&autoload=false&libraries=services`;
+           document.head.appendChild(script);
+           script.onload = () => {
+             window.kakao.maps.load(() => {
+               if (mapContainerRef.current) {
+                 const mapOption = {
+                   center: new window.kakao.maps.LatLng(currentCenter[0], currentCenter[1]),
+                   level: 7
+                 };
+                 kakaoMap.current = new window.kakao.maps.Map(mapContainerRef.current, mapOption);
+                 drawPolygon();
+               }
+             });
+           };
+         });
+       };
 
-        const centerPoint = turf.point([locations[index].longitude, locations[index].latitude]);
+   const drawPolygon = async () => {
+     if (currentPolygon && currentPolygon.length > 0) {
+         currentPolygon.forEach(polygon => {
+           polygon.setMap(null);
+         });
+         setCurrentPolygon([]); // Set currentPolygon state to an empty array
+       }
+     let radius;
+     let targetAdmNames = new Set();
+     switch (mapLevel) {
+       case 0:
+         radius = 1;
+         break;
+       case 50:
+         radius = 2500;
+         break;
+       case 100:
+         radius = 5000;
+         break;
+     }
+     try {
+       const response = await axios.get('/geojson/HangJeongDong_ver20230701.geojson');
+       const data = response.data;
+       const feature = data.features.find(feature => feature.properties.adm_cd2 === currentAdmNm);
+       let temp = feature.geometry.coordinates;
+       let tempNum = temp[0][0][0];
+       console.log("tempNum"+tempNum[0])
+       const centerPoint = turf.point([tempNum[0],tempNum[1]]);
+       const buffer = turf.buffer(centerPoint, radius, { units: 'meters' });
+       const features = data.features.filter(feature => {
+         const point = turf.point(feature.geometry.coordinates[0][0][0]);
+         return turf.booleanPointInPolygon(point, buffer);
+       });
+         const polygons = [];
+       targetAdmNames = new Set(features.map(feature => feature.properties.adm_nm));
+       if(targetAdmNames!=setSearchArea){
+            setSearchArea([...targetAdmNames]);
+            setPage(0);
+       }
+       // Draw polygons on the Kakao Map
+        targetAdmNames.forEach(admName => {
+                const admFeatures = data.features.filter(feature => feature.properties.adm_nm === admName);
+                admFeatures.forEach(admFeature => {
+                  const paths = admFeature.geometry.coordinates[0][0].map((coord) => {
+                    return new window.kakao.maps.LatLng(coord[1], coord[0]);
+                  });
 
-        console.log(centerPoint);
-        // loop through each feature in the features array
-        for (let i = 0; i < data.features.length; i++) {
-          const feature = data.features[i];
-          if (turf.booleanPointInPolygon(centerPoint, feature)) {
-            console.log("tf?" + turf.booleanPointInPolygon(centerPoint, feature));
-            let paths = feature.geometry.coordinates[0][0].map(coordinates => {
-              return new window.kakao.maps.LatLng(coordinates[1], coordinates[0]);
-            });
-            console.log("paths" + paths);
-            // create the polygon
-            let polygon = new window.kakao.maps.Polygon({
-               path: paths,
-                strokeWeight: 2,
-                strokeColor: 'saddlebrown', // 선의 색깔입니다
-                strokeOpacity: 0.8, // 선의 불투명도 입니다 1에서 0 사이의 값이며 0에 가까울수록 투명합니다
-                strokeStyle: 'dash', // 선의 스타일입니다
-                fillColor: '#ABEBC6', // 채우기 색깔입니다
-                fillOpacity: 0.8 // 채우기 불투명도 입니다
-            });
-            console.log("Polygon paths: ", polygon.getPath().map(coord => [coord.getLat(), coord.getLng()]));
+           const polygon = new window.kakao.maps.Polygon({
+             path: paths,
+             strokeWeight: 0,
+             strokeStyle: 'dash',
+             fillColor: '#ABEBC6',
+             fillOpacity: 0.8,
+           });
 
-            // add the polygon to the map
-            polygon.setMap(kakaoMap);
-            setCurrentPolygon(polygon);
-          }
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching GeoJSON:', error);
-      });
-  };
-
-
-  const onLoadKakaoMap = (locations) => {
-    axios.get('/api/getMapData')
-      .then((response) => {
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${response.data.apiKey}&autoload=false&libraries=services`;
-        document.head.appendChild(script);
-
-        script.onload = () => {
-          window.kakao.maps.load(() => {
-            if (mapContainerRef.current) {
-              // Create and add a new map only if mapContainer is empty
-              const mapOption = {
-                center: new window.kakao.maps.LatLng(locations[0].latitude, locations[0].longitude),
-                level: 7
-              };
-              setKakaoMap(new window.kakao.maps.Map(mapContainerRef.current, mapOption));
-              drawPolygon(kakaoMap, locations, 0);
+            polygons.push(polygon);
+           setCurrentPolygon(polygons);
+           const ct = new window.kakao.maps.LatLng(tempNum[1], tempNum[0]);
+            if (kakaoMap.current) {
+              kakaoMap.current.setCenter(ct);
             }
-          });
-        };
+         });
+       });
+        polygons.forEach(polygon => {
+              polygon.setMap(kakaoMap.current); // Add each polygon to the map
+            });
+     } catch (error) {
+       console.error('Error fetching GeoJSON:', error);
+     }
+   };
 
-      });
+
+
+
+
+
+  const handleAddressLinkClick = (index) => {
+    const location = userLocationList[index];
+    setSelectedArea(extractDong(location.address));
+    console.log('왜 안됄' + JSON.stringify(location.code));
+    setCurrentAdmNm(location.code);
   };
 
-const handleAddressLinkClick = (index) => {
-  drawPolygon(kakaoMap, userLocationList, index);
-};
-
-
+  useEffect(() => {
+    if (currentCenter.length > 0 && kakaoMap.current) {
+      drawPolygon();
+    }
+  }, [currentAdmNm, mapLevel]);
 
   const handleSliderChange = (e) => {
-    setMapLevel(e.target.value);
+    setMapLevel(parseInt(e.target.value));
   };
 
   return (
@@ -409,9 +475,9 @@ const handleAddressLinkClick = (index) => {
 
             <Dropdown.Menu>
               {userLocationList.map((loc) => {
-                const dong = extractDong(loc.address); // Extract the last part as the "동" information
+                const dong = extractDong(loc.address);
                 return (
-                  <Dropdown.Item key={loc.address} onClick={() => handleAreaSearch(loc.address, dong)}>
+                  <Dropdown.Item key={loc.id} onClick={() => handleAreaSearch(loc, dong)}>
                     {dong}
                   </Dropdown.Item>
                 );
@@ -552,12 +618,12 @@ const handleAddressLinkClick = (index) => {
           )}
         </Col>
       </Row>
-      <Modal show={showUserLocationModal} onHide={handleUserLocationCloseModal} dialogClassName="custom-modal" bsClass="my-modal" >
+      <Modal show={showUserLocationModal} onHide={handleUserLocationCloseModal} fullscreen={fullscreen}>
         <Modal.Header closeButton>
           <Modal.Title>고객 위치 인증 리스트</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div ref={mapContainerRef} id="map" style={{ width: '100%', height: '100%' }}></div>
+          <div ref={mapContainerRef} style={mapContainerStyle}></div>
           <br /><br />
           <RangeSlider
             value={mapLevel}
@@ -600,10 +666,7 @@ const handleAddressLinkClick = (index) => {
               </ul>
             </div>
           </Row>
-
-
         </Modal.Body>
-
         <Modal.Footer>
           <Button variant="secondary" onClick={handleUserLocationCloseModal}>
             닫기
