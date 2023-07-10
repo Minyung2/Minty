@@ -119,7 +119,7 @@ public class TradeBoardController {
             @RequestParam(value = "minPrice", required = false) Optional<Integer> minPrice,
             @RequestParam(value = "maxPrice", required = false) Optional<Integer> maxPrice,
             @RequestParam(value = "sortBy", required = false) Optional<String> sortBy,
-            @PathVariable(value = "searchArea", required = false) Optional<String> searchArea
+            @PathVariable(value = "searchArea", required = false) List<String> searchArea
     ) {
         HttpSession session = request.getSession();
         Long userId = (Long) session.getAttribute("userId");
@@ -139,12 +139,15 @@ public class TradeBoardController {
         if (sortBy.isPresent()) {
             tradeBoardSearchDto.setSortBy(sortBy.get());
         }
-        if (searchArea.isPresent()) {
-            System.out.println("1" + searchArea.get());
-            tradeBoardSearchDto.setSearchArea(searchArea.get());
-        } else if (!searchArea.isPresent()) {
-            System.out.println("2" + tradeBoardSearchDto.getSearchArea());
-            tradeBoardSearchDto.setSearchArea(userLocationList.get(0).getAddress());
+        if (searchArea==null) {
+            searchArea = new ArrayList<>();
+            searchArea.add(userLocationList.get(0).getAddress());
+            System.out.println("있음 : "+searchArea);
+            tradeBoardSearchDto.setSearchArea(searchArea);
+        }
+        if (searchArea!=null) {
+            System.out.println("있음 : "+searchArea);
+            tradeBoardSearchDto.setSearchArea(searchArea);
         }
 
         List<TopCategoryDto> topCategories = categoryService.getTopCategoryList();
