@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef  } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import Pagination from './pagination';
 import { Button, Container, Row, Col, Nav, Form, Modal, Dropdown, DropdownButton } from 'react-bootstrap';
@@ -47,7 +47,7 @@ function BoardList() {
     const kakaoMap = useRef(null);
     const mapContainerRef = useRef(null);
     const mapContainerStyle = showUserLocationModal ? { width: '100%', height: '90%' } : { display: 'none' };
-
+    const [searchParams, setSearchParams] = useSearchParams();
 
 
   const handleSearch = (e) => {
@@ -155,28 +155,43 @@ function BoardList() {
   }, [subCategoryId, searchQuery, minPrice, maxPrice, sortBy, searchArea]);
 
   const fetchData = async () => {
-    let endpoint = '/api/boardList';
-    if (searchArea.length > 0) {
-      endpoint += `/searchArea/${searchArea}`;
-    }
-    if (subCategoryId) {
-      endpoint += `/category/${subCategoryId}`;
-    }
-    if (searchQuery) {
-      endpoint += `/searchQuery/${searchQuery}`;
-    }
-    if (minPrice) {
-      endpoint += `/minPrice/${minPrice}`;
-    }
-    if (maxPrice) {
-      endpoint += `/maxPrice/${maxPrice}`;
-    }
-    if (sortBy) {
-      endpoint += `/sortBy/${sortBy}`;
-    }
+      let endpoint = '/api/boardList';
 
-    endpoint += `/page/${page}`;
-    console.log(endpoint);
+      const updateSearchParams = (param, value) => {
+        setSearchParams((prevParams) => {
+          const newParams = new URLSearchParams(prevParams);
+          newParams.set(param, value);
+          return newParams;
+        });
+      };
+
+      if (searchArea.length > 0) {
+        endpoint += `/searchArea/${searchArea}`;
+        updateSearchParams('searchArea', searchArea);
+      }
+      if (subCategoryId) {
+        endpoint += `/category/${subCategoryId}`;
+        updateSearchParams('subCategoryId', subCategoryId);
+      }
+      if (searchQuery) {
+        endpoint += `/searchQuery/${searchQuery}`;
+        updateSearchParams('searchQuery', searchQuery);
+      }
+      if (minPrice) {
+        endpoint += `/minPrice/${minPrice}`;
+        updateSearchParams('minPrice', minPrice);
+      }
+      if (maxPrice) {
+        endpoint += `/maxPrice/${maxPrice}`;
+        updateSearchParams('maxPrice', maxPrice);
+      }
+      if (sortBy) {
+        endpoint += `/sortBy/${sortBy}`;
+        updateSearchParams('sortBy', sortBy);
+      }
+
+      endpoint += `/page/${page}`;
+      console.log(endpoint);
 
     await axios
       .get(endpoint)
