@@ -210,9 +210,8 @@
 .col-md-3{
 display:flex !important;
 }
-.justify-content-center{
-justify-content:none !important;
-}
+
+
 
 
 .dark-dropdown .dropdown-menu {

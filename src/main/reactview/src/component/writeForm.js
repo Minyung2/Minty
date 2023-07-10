@@ -21,7 +21,7 @@ function WriteForm(props) {
     const [addressCode, setAddressCode] = useState([]);
     const [userLocationList, setUserLocationList] = useState([]);
 
-     const location = useLocation();
+    const location = useLocation();
     useEffect(() => {
      if (location.state) {
           const temp = location.state.tradeBoard;
